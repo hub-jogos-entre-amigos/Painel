@@ -4,6 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>VOCÊ NÃO ME CONHECE — JEA</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <style>
 :root {
   --bg: #030207;
@@ -27,6 +32,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe
 .player-row { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 12px 15px; border-radius: 15px; margin-bottom: 8px; }
 .btn-remove { background: var(--danger); color: #fff; border: none; padding: 8px 15px; border-radius: 10px; font-size: 0.7rem; font-weight: 900; width: auto !important; }
 
+/* ESTILO CARTA */
 .card-container { perspective: 1000px; margin: 20px 0; height: 180px; }
 .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
 .card-inner.flipped { transform: rotateY(180deg); }
@@ -125,12 +131,30 @@ button:active { transform: scale(0.96); }
     <button class="btn-primary" onclick="nextTurn()">PRÓXIMA RODADA</button>
   </div>
 
+  <div id="modal-alert" class="modal">
+    <div class="modal-box" style="border-color: var(--danger);">
+      <h2 style="color: var(--danger);">AVISO</h2>
+      <p id="alert-msg" style="font-weight: 700; margin: 20px 0;">Adicione pelo menos 3 jogadores para este jogo</p>
+      <button class="btn-primary" onclick="closeModal('modal-alert')">OK</button>
+    </div>
+  </div>
+
   <div id="modal-score" class="modal">
     <div class="modal-box">
       <h2>PLACAR GERAL</h2>
       <button id="btnEditToggle" class="btn-outline" style="font-size:0.7rem; margin-bottom:15px" onclick="manualEdit = !manualEdit; renderScoreBody()">✏️ AJUSTAR PONTOS</button>
       <div id="score-body"></div>
       <button class="btn-primary" onclick="closeModal('modal-score')" style="margin-top:20px">VOLTAR</button>
+    </div>
+  </div>
+
+  <div id="modal-menu" class="modal">
+    <div class="modal-box">
+        <h2 style="color:var(--accent)">MENU</h2>
+        <button class="btn-outline" onclick="closeModal('modal-menu'); openModal('modal-rules')" style="margin-bottom:10px">📜 Regras</button>
+        <button class="btn-outline" onclick="location.reload()" style="margin-bottom:10px">🔄 Reiniciar</button>
+        <button class="btn-primary" onclick="window.location.href='./index.html'">🏠 Voltar ao HUB</button>
+        <button class="btn-accent" onclick="closeModal('modal-menu')" style="margin-top:20px">Fechar</button>
     </div>
   </div>
 
@@ -144,13 +168,6 @@ button:active { transform: scale(0.96); }
       <button class="btn-accent" onclick="closeModal('modal-rules')" style="margin-top:15px">Entendi</button>
     </div>
   </div>
-
-  <div id="modal-menu" class="modal"><div class="modal-box">
-    <button class="btn-outline" onclick="closeModal('modal-menu'); openModal('modal-rules')" style="margin-bottom:10px">📜 Regras</button>
-    <button class="btn-outline" onclick="location.reload()" style="margin-bottom:10px">🔄 Reiniciar</button>
-    <button class="btn-primary" onclick="window.location.href='./index.html'">🏠 Voltar ao HUB</button>
-    <button class="btn-accent" onclick="closeModal('modal-menu')" style="margin-top:20px">Fechar</button>
-  </div></div>
 </div>
 
 <script>
@@ -158,6 +175,7 @@ const perguntas = ["Conte sobre um mico que já pagou.","Conte sobre algo que co
 let players = [], deck = [], cur = 0, idx = 0, isNarratorTruth = true, currentQuestion = "", votes = {}, votingQueue = [], isMuted = false, audioCtx = null, time = 60, timeInt = null, manualEdit = false;
 
 function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
 function playSfx(freq, type='sine', dur=0.1) {
     if(isMuted || !audioCtx) return;
     const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
@@ -192,7 +210,10 @@ function renderSetupPlayers(){
 }
 
 function startGame(){
-  if(players.length < 2) return;
+  if(players.length < 3) {
+      openModal('modal-alert'); // Alerta personalizado conforme solicitado
+      return;
+  }
   initAudio();
   playSfx(400); setTimeout(()=>playSfx(600), 100); setTimeout(()=>playSfx(800), 200); 
   deck = [...perguntas].sort(()=>Math.random()-0.5);

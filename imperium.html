@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>IMPERIUM — JEA</title>
+
+<style>
+:root {
+  --bg: #030207;
+  --rei: #FFD700; 
+  --assassino: #ff0033;
+  --conspirador: #9d4edd;
+  --text: #ffffff;
+  --glass: rgba(255, 255, 255, 0.08);
+  --card-dark: #0f0f13;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { 
+  margin: 0; background: var(--bg); color: var(--text); 
+  font-family: 'Cinzel', serif; 
+  height: 100dvh; overflow: hidden; display: flex; justify-content: center;
+}
+
+#app { width: 100%; max-width: 480px; height: 100%; position: relative; display: flex; flex-direction: column; padding: 10px; }
+
+/* NAV */
+.nav-top { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; justify-content: space-between; }
+.btn-nav { background: var(--glass); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; backdrop-filter: blur(10px); }
+
+.screen { display: none; flex-direction: column; width: 100%; height: 100%; padding: 10px; text-align: center; position: relative; justify-content: center; }
+.screen.active { display: flex; }
+
+/* CARTAS */
+.card-container { width: 280px; height: 400px; perspective: 1200px; margin: 10px auto; }
+.card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow: hidden; }
+.card-front { background: linear-gradient(135deg, #1a1a20, #0a0a0c); }
+.card-back { background: var(--card-dark); transform: rotateY(180deg); border: 2px solid var(--rei); }
+
+#r-role { font-size: 1.7rem; margin: 5px 0; width: 100%; }
+#r-word { font-size: 2.1rem; color: #fff; width: 100%; }
+
+/* BOTÕES */
+button { width: 100%; padding: 16px; border-radius: 20px; border: none; font-size: 0.9rem; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; margin-top: 5px; }
+.btn-primary { background: #fff; color: #000; }
+.btn-accent { background: var(--rei); color: #000; }
+.btn-danger { background: var(--assassino); color: #fff; }
+.btn-outline { background: var(--glass); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+
+/* LISTA SETUP */
+#player-list { overflow-y:auto; flex:1; margin: 15px 0; width: 100%; }
+.player-slot { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 10px 15px; border-radius: 15px; margin-bottom: 6px; }
+.btn-del { background: rgba(255,0,0,0.15); color: #ff4444; width: auto; padding: 8px 15px; border-radius: 10px; font-size: 0.7rem; margin:0; }
+
+/* MODAIS */
+.modal { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 5000; }
+.modal-content { background: #111; padding: 25px; border-radius: 30px; border: 1px solid var(--rei); width: 100%; max-width: 400px; text-align: center; }
+
+/* VOTAÇÃO */
+.voter-tag { background: var(--rei); color: #000; padding: 5px 15px; border-radius: 10px; font-weight: 900; margin-bottom: 15px; display: inline-block; }
+.vote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+
+/* RESULTADOS IMPACTANTES (VERSÃO ANTERIOR) */
+.res-screen { position: fixed; inset: 0; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+.res-bg-rei { background: radial-gradient(circle, #2a2200 0%, #030207 100%); border-top: 4px solid var(--rei); }
+.res-bg-ass { background: radial-gradient(circle, #2a0000 0%, #030207 100%); border-top: 4px solid var(--assassino); }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="app">
+    <div class="nav-top">
+        <button class="btn-nav" id="sound-toggle" onclick="toggleAudio()">🔊</button>
+        <button class="btn-nav" onclick="openModal('modal-menu')">☰</button>
+    </div>
+
+    <div id="scr-setup" class="screen active">
+        <h1 style="color: var(--rei); margin:0">IMPERIUM</h1>
+        <p style="opacity:0.5; font-size: 0.8rem; margin-bottom:15px">NOMEIE OS NOBRES</p>
+        <input id="in-name" placeholder="NOME DO NOBRE" style="width:100%; padding:15px; border-radius:15px; background:var(--glass); color:#fff; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <button class="btn-accent" onclick="addPlayer()">+ ADICIONAR</button>
+        <div id="player-list"></div>
+        <button class="btn-primary" onclick="tryStart()">CONVOCAR A CORTE</button>
+    </div>
+
+    <div id="scr-pass" class="screen">
+        <p style="opacity:0.5">ENTREGUE PARA</p>
+        <h1 id="pass-name" style="font-size: 2.5rem; color: var(--rei);">---</h1>
+        <button class="btn-primary" onclick="showReveal()">ESTOU COM O APARELHO</button>
+    </div>
+
+    <div id="scr-reveal" class="screen">
+        <div class="card-container" onclick="flipCard()">
+            <div id="the-card" class="card-inner">
+                <div class="card-face card-front">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">🏰</div>
+                    <p style="opacity:0.5">TOQUE PARA REVELAR</p>
+                </div>
+                <div class="card-face card-back">
+                    <p style="font-size: 0.7rem; opacity: 0.5;">VOCÊ É:</p>
+                    <h1 id="r-role">PAPEL</h1>
+                    <div id="r-word-box">
+                        <p style="font-size: 0.6rem; opacity: 0.4; margin-top:10px">PALAVRA CHAVE</p>
+                        <h2 id="r-word">---</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="btn-entendi" class="btn-accent" style="visibility:hidden" onclick="nextPlayer()">ENTENDI</button>
+    </div>
+
+    <div id="scr-debate" class="screen">
+        <p style="opacity:0.5">LÍDER DO TURNO: <span id="st-name" style="color:var(--rei)">---</span></p>
+        <div id="timer" style="font-size: 5rem; font-weight: 900; margin: 10px 0;">01:00</div>
+        <button class="btn-primary" onclick="initVote()">INICIAR VOTAÇÃO</button>
+    </div>
+
+    <div id="scr-voting" class="screen">
+        <div class="voter-tag" id="voter-name">---</div>
+        <p style="opacity:0.6; margin-bottom: 10px;">QUEM É O ASSASSINO?</p>
+        <div id="vote-options" class="vote-grid"></div>
+    </div>
+
+    <div id="res-screen" class="res-screen">
+        <div id="res-icon" style="font-size: 7rem; margin-bottom: 10px;">🏆</div>
+        <h1 id="res-title" style="font-size: 2.5rem; margin: 0; color: #fff;">TÍTULO</h1>
+        <p id="res-desc" style="font-family: sans-serif; margin: 20px 0 40px; padding: 0 20px; line-height: 1.5;"></p>
+        <button id="btn-last-chance" class="btn-danger" style="display:none" onclick="goLastChance()">ÚLTIMA CHANCE</button>
+        <button class="btn-primary" onclick="resetRound()">PRÓXIMA RODADA</button>
+    </div>
+
+    <div id="scr-last-chance" class="screen">
+        <h1 style="color:var(--assassino)">ÚLTIMA CHANCE</h1>
+        <p>O Assassino adivinhou o segredo?</p>
+        <button class="btn-danger" onclick="finishGame(true)">SIM (ASSASSINO ESCAPA)</button>
+        <button class="btn-primary" onclick="finishGame(false)">NÃO (REINO VENCE)</button>
+    </div>
+
+    <div id="modal-menu" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--rei)">MENU</h2>
+            <button class="btn-outline" onclick="openModal('modal-score')">🏆 Placar</button>
+            <button class="btn-outline" onclick="openModal('modal-rules')">📜 Regras</button>
+            <button class="btn-outline" onclick="location.reload()">🔄 Reiniciar</button>
+            <button class="btn-primary" onclick="window.location.href='./index.html'" style="margin-top:10px">Voltar ao Hub 🏠</button>
+            <button class="btn-accent" onclick="closeModal('modal-menu')" style="margin-top:20px">Fechar</button>
+        </div>
+    </div>
+
+    <div id="modal-rules" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--rei)">REGRAS</h2>
+            <p style="text-align:left; font-size:0.85rem; opacity:0.8;">
+                1. O Rei e Conspiradores devem achar o Assassino.<br>
+                2. O Assassino deve descobrir a palavra ou o Rei.<br>
+                3. Se o Assassino for votado, ele tem a Última Chance. Se ele acertar o Rei ou a Palavra, ele vence a rodada!
+            </p>
+            <button class="btn-primary" onclick="closeModal('modal-rules')">FECHAR</button>
+        </div>
+    </div>
+
+    <div id="modal-error" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--assassino)">ERRO</h2>
+            <p>Mínimo de 3 jogadores!</p>
+            <button class="btn-primary" onclick="closeModal('modal-error')">OK</button>
+        </div>
+    </div>
+
+    <div id="modal-score" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--rei)">PLACAR</h2>
+            <div id="score-list" style="margin: 20px 0;"></div>
+            <button class="btn-primary" onclick="closeModal('modal-score')">VOLTAR</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let players = [], roles = [], scores = {}, cur = 0, currentVoter = 0, votes = {};
+let audioCtx = null, isMuted = false, timerInt;
+const words = [{r:"PIZZA", c:"PASTEL"}, {r:"LUA", c:"SOL"}, {r:"AVIÃO", c:"CARRO"}, {r:"FOGO", c:"GELO"}];
+
+function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function toggleAudio() { isMuted = !isMuted; document.getElementById('sound-toggle').innerText = isMuted ? "🔇" : "🔊"; }
+function playSfx(f, d) { if(isMuted || !audioCtx) return; const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(f, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d); o.start(); o.stop(audioCtx.currentTime + d); }
+function playArp(fs) { fs.forEach((f, i) => setTimeout(() => playSfx(f, 0.4), i * 85)); }
+
+function openModal(id) { if(id === 'modal-score') renderScores(); document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function addPlayer() {
+    initAudio();
+    const inp = document.getElementById('in-name');
+    const name = inp.value.trim().toUpperCase();
+    if(!name) return;
+    players.push(name);
+    scores[name] = 0;
+    inp.value = '';
+    renderPlayerList();
+    playSfx(523, 0.1); // Som de acréscimo (Dó)
+}
+
+function renderPlayerList() {
+    const container = document.getElementById('player-list');
+    container.innerHTML = players.map((p, i) => `
+        <div class="player-slot"><b>${p}</b><button class="btn-del" onclick="removePlayer(${i})">REMOVER</button></div>
+    `).join('');
+}
+
+function removePlayer(idx) {
+    players.splice(idx, 1);
+    renderPlayerList();
+    playSfx(330, 0.1); // Som de remoção (Mi grave)
+}
+
+function tryStart() {
+    if(players.length < 3) { openModal('modal-error'); return; }
+    prepareRound();
+}
+
+function prepareRound() {
+    let theme = words[Math.floor(Math.random()*words.length)];
+    roles = [{n:"REI", w:theme.r, c:"var(--rei)"}, {n:"ASSASSINO", w:"???", c:"var(--assassino)"}];
+    for(let i=2; i<players.length; i++) roles.push({n:"CONSPIRADOR", w:theme.c, c:"var(--conspirador)"});
+    roles.sort(() => Math.random() - 0.5);
+    cur = 0; showPass();
+}
+
+function showPass() {
+    document.getElementById('pass-name').innerText = players[cur];
+    showScreen('scr-pass');
+}
+
+function showReveal() {
+    document.getElementById('the-card').classList.remove('flipped');
+    document.getElementById('btn-entendi').style.visibility = 'hidden';
+    const r = roles[cur];
+    document.getElementById('r-role').innerText = r.n;
+    document.getElementById('r-role').style.color = r.c;
+    document.getElementById('r-word').innerText = r.w;
+    document.getElementById('r-word-box').style.display = (r.n === "ASSASSINO") ? "none" : "block";
+    showScreen('scr-reveal');
+}
+
+function flipCard() {
+    if(!document.getElementById('the-card').classList.contains('flipped')) {
+        document.getElementById('the-card').classList.add('flipped');
+        document.getElementById('btn-entendi').style.visibility = 'visible';
+        playArp([440, 554, 659]);
+    }
+}
+
+function nextPlayer() {
+    cur++;
+    if(cur < players.length) showPass();
+    else startDebate();
+}
+
+function startDebate() {
+    document.getElementById('st-name').innerText = players[Math.floor(Math.random()*players.length)];
+    showScreen('scr-debate');
+    let t = 60;
+    clearInterval(timerInt);
+    timerInt = setInterval(() => {
+        t--; document.getElementById('timer').innerText = `00:${t.toString().padStart(2,'0')}`;
+        if(t <= 10 && t > 0) playSfx(900, 0.05);
+        if(t === 0) { clearInterval(timerInt); playArp([200, 100]); }
+    }, 1000);
+}
+
+function initVote() {
+    clearInterval(timerInt);
+    currentVoter = 0; votes = {};
+    players.forEach(p => votes[p] = 0);
+    showVoteTurn();
+}
+
+function showVoteTurn() {
+    const container = document.getElementById('vote-options');
+    container.innerHTML = "";
+    document.getElementById('voter-name').innerText = players[currentVoter];
+    players.forEach((p, i) => {
+        if(i !== currentVoter) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-outline'; btn.innerText = p;
+            btn.onclick = () => { playSfx(1000, 0.05); votes[p]++; currentVoter++; if(currentVoter < players.length) showVoteTurn(); else tally(); };
+            container.appendChild(btn);
+        }
+    });
+    showScreen('scr-voting');
+}
+
+function tally() {
+    const assIdx = roles.findIndex(r => r.n === "ASSASSINO");
+    const assName = players[assIdx];
+    const mostVoted = Object.keys(votes).reduce((a, b) => votes[a] > votes[b] ? a : b);
+    const res = document.getElementById('res-screen');
+    res.style.display = "flex";
+    
+    if(mostVoted === assName) {
+        res.className = "res-screen res-bg-rei";
+        document.getElementById('res-icon').innerText = "⚔️";
+        document.getElementById('res-title').innerText = "PEGUEI!";
+        document.getElementById('res-desc').innerText = `O Assassino ${mostVoted} foi desmascarado!\nEle terá uma ÚLTIMA CHANCE de escapar.`;
+        document.getElementById('btn-last-chance').style.display = "block";
+        playArp([523, 659, 783, 1046]);
+    } else {
+        res.className = "res-screen res-bg-ass";
+        document.getElementById('res-icon').innerText = "💀";
+        document.getElementById('res-title').innerText = "TRAIÇÃO!";
+        document.getElementById('res-desc').innerText = `Vocês exilaram ${mostVoted}, mas o Assassino era ${assName}!\nA Corte caiu em desgraça.`;
+        document.getElementById('btn-last-chance').style.display = "none";
+        scores[assName] += 3;
+        playArp([150, 120, 80]);
+    }
+}
+
+function goLastChance() { document.getElementById('res-screen').style.display = "none"; showScreen('scr-last-chance'); }
+
+function finishGame(assWon) {
+    const assName = players[roles.findIndex(r => r.n === "ASSASSINO")];
+    const res = document.getElementById('res-screen');
+    res.style.display = "flex";
+    document.getElementById('btn-last-chance').style.display = "none";
+
+    if(assWon) {
+        scores[assName] += 3;
+        res.className = "res-screen res-bg-ass";
+        document.getElementById('res-icon').innerText = "🔥";
+        document.getElementById('res-title').innerText = "FUGA COM SUCESSO";
+        document.getElementById('res-desc').innerText = "O Assassino descobriu os segredos e escapou! +3 Pontos.";
+        playArp([100, 200, 300, 400]);
+    } else {
+        players.forEach(p => { if(p !== assName) scores[p] += 1; });
+        res.className = "res-screen res-bg-rei";
+        document.getElementById('res-icon').innerText = "👑";
+        document.getElementById('res-title').innerText = "JUSTIÇA FEITA";
+        document.getElementById('res-desc').innerText = "O traidor falhou na sua missão! +1 Ponto para a Corte.";
+        playArp([800, 1000, 1200]);
+    }
+}
+
+function resetRound() { document.getElementById('res-screen').style.display = "none"; prepareRound(); }
+function renderScores() { document.getElementById('score-list').innerHTML = players.map(p => `<div class="player-slot"><b>${p}</b> <span>${scores[p]} PTS</span></div>`).join(''); }
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+</script>
+</body>
+</html>

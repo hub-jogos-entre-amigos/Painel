@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>NEM PENSAR — JEA</title>
+<style>
+:root {
+  --bg: #030207;
+  --accent: #FFD700; 
+  --text: #ffffff;
+  --glass: rgba(255, 255, 255, 0.08);
+  --success: #28a745;
+  --danger: #dc3545;
+  --card-white: #fdfdfb;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { 
+  margin: 0; background: var(--bg); color: var(--text); 
+  font-family: 'Segoe UI', Roboto, sans-serif; 
+  height: 100dvh; overflow: hidden; display: flex; justify-content: center;
+}
+
+#app { width: 100%; max-width: 480px; height: 100%; position: relative; display: flex; flex-direction: column; padding: 10px; }
+
+.nav-top {
+  position: absolute; top: 15px; left: 15px; right: 15px; z-index: 1000;
+  display: flex; justify-content: space-between;
+}
+.btn-nav {
+  background: var(--glass); border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+
+.screen { display: none; flex-direction: column; width: 100%; height: 100%; padding: 10px; text-align: center; position: relative; }
+.screen.active { display: flex; }
+
+/* TIMER COM PULSAÇÃO */
+.timer-box { position: relative; width: 80px; height: 80px; margin: 40px auto 10px; }
+.timer-svg { transform: rotate(-90deg); width: 80px; height: 80px; }
+.timer-svg circle { fill: none; stroke-width: 6; cx: 40; cy: 40; r: 36; stroke-linecap: round; }
+.circle-bg { stroke: rgba(255,255,255,0.1); }
+.circle-prog { stroke: var(--success); stroke-dasharray: 226; stroke-dashoffset: 0; transition: stroke 0.3s, stroke-dashoffset 1s linear; }
+#timerText { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 900; }
+
+@keyframes pulse-red {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0px #ff0000); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #ff0000); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0px #ff0000); }
+}
+.timer-pulse { animation: pulse-red 0.5s infinite; }
+
+.card-ui {
+  flex: 1; background: var(--card-white); border-radius: 25px;
+  margin-bottom: 10px; padding: 15px; display: flex; flex-direction: column;
+  position: relative; color: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.card-pts-badge { position: absolute; top: 12px; right: 12px; background: var(--accent); color: #000; padding: 5px 12px; border-radius: 10px; font-weight: 900; font-size: 0.8rem; }
+.word-tag { background: var(--accent); color: #000; font-size: 1.8rem; font-weight: 1000; padding: 15px 10px; border-radius: 15px; margin: 35px 0 15px 0; text-transform: uppercase; }
+.forbidden-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+.forbidden-list li { background: #fff; color: #000; padding: 10px; border-radius: 12px; font-weight: 800; border: 2px solid #eee; font-size: 0.9rem; }
+
+button { width: 100%; padding: 16px; border-radius: 18px; border: none; font-size: 1rem; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+button:active { transform: scale(0.96); }
+.btn-primary { background: #fff; color: #000; }
+.btn-accent { background: var(--accent); color: #000; }
+.btn-outline { background: var(--glass); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-danger-sm { background: var(--danger); color: #fff; padding: 5px 10px; width: auto; font-size: 0.7rem; border-radius: 8px; }
+
+.modal { position: absolute; inset: 0; background: rgba(0,0,0,0.96); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 2000; }
+.modal-box { background: #111; padding: 25px; border-radius: 30px; border: 1px solid var(--accent); width: 100%; max-width: 400px; }
+.score-item { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 12px; border-radius: 15px; margin-bottom: 8px; }
+.score-controls { display: none; align-items: center; gap: 8px; }
+.score-controls.active { display: flex; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="nav-top">
+    <button class="btn-nav" id="sound-btn" onclick="toggleAudio()">🔊</button>
+    <button class="btn-nav" onclick="openModal('modal-menu')">☰</button>
+  </div>
+
+  <div id="scr-setup" class="screen active">
+    <h1 style="font-size:2.5rem; margin-top: 60px; color: var(--accent);">NEM PENSAR!</h1>
+    <input id="in-name" placeholder="NOME DO JOGADOR" maxlength="15" style="width:100%; padding:18px; border-radius:15px; background:var(--glass); color:#fff; border:1px solid rgba(255,255,255,0.1); margin-bottom:10px; text-align:center; font-weight:900;">
+    <button class="btn-accent" onclick="addPlayer()">+ ADICIONAR</button>
+    <div id="player-list" style="overflow-y:auto; flex:1; margin: 15px 0;"></div>
+    <button class="btn-primary" onclick="startGame()">INICIAR PARTIDA</button>
+  </div>
+
+  <div id="scr-lobby" class="screen">
+    <h3 style="margin-top:60px">Vez de Narrar:</h3>
+    <h1 id="lb-name" style="color:var(--accent); font-size:2.8rem; margin:10px 0">?</h1>
+    <div style="margin: 20px 0; padding: 25px; background: var(--glass); border-radius: 25px;">
+      <p style="margin:0; opacity:0.6; font-weight:700">PONTUAÇÃO</p>
+      <div id="lb-score" style="font-size: 3.5rem; font-weight: 1000; color: var(--accent);">0</div>
+    </div>
+    <button class="btn-outline" onclick="openScore()">📊 VER PLACAR</button>
+    <div style="flex:1"></div>
+    <button class="btn-primary" style="height:90px;" onclick="revealCard()">REVELAR CARTA</button>
+  </div>
+
+  <div id="scr-game" class="screen">
+    <div id="timer-container" class="timer-box">
+      <svg class="timer-svg"><circle class="circle-bg"></circle><circle id="timerCircle" class="circle-prog"></circle></svg>
+      <div id="timerText">60</div>
+    </div>
+    <div id="prep-timer" style="font-weight:900; color:var(--accent); font-size:0.8rem; margin-bottom:10px">MEMORIZE: 5s</div>
+
+    <div class="card-ui">
+      <div class="card-pts-badge" id="cardPts">1 PTS</div>
+      <div class="word-tag" id="cardWord">PALAVRA</div>
+      <ul class="forbidden-list" id="cardForbidden"></ul>
+    </div>
+    
+    <button id="btnSkip" class="btn-outline" style="margin-bottom:8px; border-color:var(--accent)" onclick="skipCard()">🔄 TROCAR (5)</button>
+    <button id="btnReady" class="btn-success" onclick="startRound()">ESTOU PRONTO (5)</button>
+    <button id="btnEndEarly" class="btn-accent" style="display:none" onclick="confirmEnd()">ENCERRAR RODADA</button>
+  </div>
+
+  <div id="scr-decision" class="screen">
+    <h3 style="margin-top:60px">Fim da Rodada</h3>
+    <h1>Quem acertou?</h1>
+    <div id="winnerButtons" style="overflow-y:auto; flex:1; margin:20px 0; display:flex; flex-direction:column; gap:10px"></div>
+    <button class="btn-outline" onclick="noOneGotIt()">Ninguém acertou</button>
+  </div>
+
+  <div id="modal-menu" class="modal">
+    <div class="modal-box">
+      <h2 style="color:var(--accent)">MENU</h2>
+      <button class="btn-outline" onclick="openModal('modal-rules')" style="margin-bottom:10px">📜 Regras</button>
+      <button class="btn-outline" onclick="location.reload()" style="margin-bottom:10px">🔄 Reiniciar</button>
+      <button class="btn-primary" onclick="window.location.href='./index.html'">🏠 HUB</button>
+      <button class="btn-accent" onclick="closeModal('modal-menu')" style="margin-top:20px">Fechar</button>
+    </div>
+  </div>
+
+  <div id="modal-rules" class="modal">
+    <div class="modal-box" style="text-align: left;">
+      <h2 style="color:var(--accent); text-align:center">REGRAS</h2>
+      <p>• <b>Objetivo:</b> Faça seu time adivinhar a palavra no topo sem dizer as proibidas.</p>
+      <p>• <b>Pontos:</b> Quem acerta ganha os pontos da carta. O narrador ganha 1 ponto.</p>
+      <p>• <b>Trocas:</b> Cada jogador tem 5 trocas por partida.</p>
+      <button class="btn-accent" onclick="closeModal('modal-rules')" style="margin-top:15px">Entendi</button>
+    </div>
+  </div>
+
+  <div id="modal-score" class="modal">
+    <div class="modal-box">
+      <h2>PLACAR</h2>
+      <button id="btnEditToggle" class="btn-outline" style="font-size: 0.7rem; padding: 10px; margin-bottom: 15px;" onclick="enableManualAdjust()">✏️ AJUSTAR MANUALMENTE</button>
+      <div id="score-body" style="max-height:40vh; overflow-y:auto;"></div>
+      <button class="btn-primary" onclick="closeModal('modal-score')" style="margin-top:20px">VOLTAR</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const cards = [
+  {w:"BANANA",p:1,f:["FRUTA","AMARELA","CASCA","MACACO","VITAMINA"]},
+  {w:"GATO",p:1,f:["PET","ANIMAL","MIAU","FELINO","LEITE"]},
+  {w:"SOL",p:1,f:["QUENTE","DIA","LUZ","ESTRELA","VERÃO"]},
+  {w:"INTERNET",p:2,f:["WIFI","REDE","ONLINE","SITE","CONEXÃO"]}
+];
+
+let players = [], deck = [], cur = 0, idx = 0, currentCard = null;
+let time = 60, prep = 5, timeInt, prepInt, isMuted = false, audioCtx = null, manualEdit = false;
+
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(freq, type = 'sine', dur = 0.1, vol = 0.1) {
+    if(isMuted || !audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(vol, audioCtx.currentTime); 
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+}
+
+function toggleAudio() {
+    initAudio(); isMuted = !isMuted;
+    document.getElementById("sound-btn").innerText = isMuted ? "🔇" : "🔊";
+}
+
+function show(id){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function openModal(id){ document.getElementById(id).style.display = "flex"; }
+function closeModal(id){ document.getElementById(id).style.display = "none"; }
+
+function addPlayer(){
+    const inp = document.getElementById("in-name");
+    if(!inp.value.trim()) return;
+    players.push({name: inp.value.toUpperCase(), score: 0, skips: 5});
+    renderSetupPlayers();
+    inp.value = "";
+    playSound(440);
+}
+
+function renderSetupPlayers(){
+    document.getElementById("player-list").innerHTML = players.map((p,i)=>`
+        <div class="score-item"><b>${p.name}</b><button class="btn-danger-sm" onclick="players.splice(${i},1);renderSetupPlayers()">Remover</button></div>
+    `).join("");
+}
+
+function startGame(){
+    if(players.length < 2) return alert("Adicione pelo menos 2 jogadores");
+    initAudio();
+    deck = [...cards].sort(()=>Math.random()-0.5);
+    show("scr-lobby");
+    updateLobby();
+}
+
+function updateLobby(){
+    document.getElementById("lb-name").innerText = players[cur].name;
+    document.getElementById("lb-score").innerText = players[cur].score;
+}
+
+function revealCard(){
+    currentCard = deck[idx % deck.length];
+    document.getElementById("cardWord").innerText = currentCard.w;
+    document.getElementById("cardPts").innerText = currentCard.p + " PTS";
+    document.getElementById("cardForbidden").innerHTML = currentCard.f.map(f=>`<li>🚫 ${f}</li>`).join("");
+    
+    document.getElementById("btnSkip").innerText = `🔄 TROCAR (${players[cur].skips})`;
+    document.getElementById("btnSkip").style.display = players[cur].skips > 0 ? "block" : "none";
+
+    time = 60; updateTimerUI();
+    show("scr-game");
+    
+    const btnReady = document.getElementById("btnReady");
+    const btnEnd = document.getElementById("btnEndEarly");
+    btnReady.style.display = "block"; btnEnd.style.display = "none";
+    btnReady.disabled = false;
+    
+    prep = 5;
+    btnReady.innerText = `ESTOU PRONTO (${prep})`;
+    document.getElementById("prep-timer").innerText = `MEMORIZE: ${prep}s`;
+    clearInterval(prepInt);
+    prepInt = setInterval(()=>{
+        prep--;
+        if(prep > 0) {
+            btnReady.innerText = `ESTOU PRONTO (${prep})`;
+            document.getElementById("prep-timer").innerText = `MEMORIZE: ${prep}s`;
+        } else {
+            btnReady.innerText = "ESTOU PRONTO";
+            document.getElementById("prep-timer").innerText = "VALENDO!";
+            clearInterval(prepInt);
+        }
+    }, 1000);
+}
+
+function skipCard() {
+    if (players[cur].skips > 0) {
+        players[cur].skips--;
+        playSound(150);
+        idx++; revealCard();
+    }
+}
+
+function startRound(){
+    playSound(660);
+    clearInterval(prepInt);
+    document.getElementById("btnReady").style.display = "none";
+    document.getElementById("btnSkip").style.display = "none";
+    document.getElementById("btnEndEarly").style.display = "block";
+    
+    timeInt = setInterval(()=>{
+        time--; 
+        updateTimerUI();
+        handleUrgencyAudio();
+        if(time <= 0) {
+            playSound(100, 'square', 0.5, 0.2); // Buzina final
+            confirmEnd();
+        }
+    }, 1000);
+}
+
+function handleUrgencyAudio(){
+    if(time <= 5) {
+        playSound(880, 'sine', 0.05);
+        setTimeout(()=>playSound(880, 'sine', 0.05), 250); // Acelera
+    } else if (time <= 10) {
+        playSound(880, 'sine', 0.08); // 1 por seg
+    } else if (time <= 30) {
+        if(time % 2 === 0) playSound(440, 'sine', 0.05); // Lento
+    }
+}
+
+function updateTimerUI(){
+    const text = document.getElementById("timerText");
+    const circle = document.getElementById("timerCircle");
+    const box = document.getElementById("timer-container");
+    
+    text.innerText = time;
+    circle.style.strokeDashoffset = 226 - (time / 60) * 226;
+    
+    // Cores Dinâmicas
+    if(time > 30) {
+        circle.style.stroke = "var(--success)";
+        text.style.color = "var(--success)";
+        box.classList.remove("timer-pulse");
+    } else if (time > 10) {
+        circle.style.stroke = "var(--accent)";
+        text.style.color = "var(--accent)";
+    } else {
+        circle.style.stroke = "var(--danger)";
+        text.style.color = "var(--danger)";
+        if(time <= 5) box.classList.add("timer-pulse");
+    }
+}
+
+function confirmEnd(){
+    clearInterval(timeInt);
+    const winBox = document.getElementById("winnerButtons");
+    winBox.innerHTML = players.map((p,i)=> i === cur ? '' : `<button class="btn-accent" onclick="givePoints(${i})">✅ ${p.name}</button>`).join("");
+    show("scr-decision");
+}
+
+function givePoints(pIdx){
+    players[pIdx].score += currentCard.p;
+    players[cur].score += 1;
+    nextTurn();
+}
+
+function noOneGotIt(){ nextTurn(); }
+function nextTurn(){ playSound(220); idx++; cur = (cur + 1) % players.length; updateLobby(); show("scr-lobby"); }
+
+function openScore(){ manualEdit = false; document.getElementById("btnEditToggle").style.display = "block"; renderScoreBody(); openModal("modal-score"); }
+function enableManualAdjust(){ manualEdit = true; document.getElementById("btnEditToggle").style.display = "none"; renderScoreBody(); }
+function renderScoreBody(){
+    document.getElementById("score-body").innerHTML = players.map((p,i)=>`
+        <div class="score-item">
+            <div><b>${p.name}</b><br><small style="opacity:0.5">🔄 ${p.skips}</small></div>
+            <div style="display:flex; align-items:center; gap:10px">
+                <div class="score-controls ${manualEdit?'active':''}">
+                    <button onclick="changeScore(${i},-1)" style="width:30px; padding:5px; background:#444">-</button>
+                </div>
+                <span style="color:var(--accent); font-weight:900">${p.score}</span>
+                <div class="score-controls ${manualEdit?'active':''}">
+                    <button onclick="changeScore(${i},1)" style="width:30px; padding:5px; background:#444">+</button>
+                </div>
+            </div>
+        </div>
+    `).join("");
+}
+function changeScore(i,v){ players[i].score = Math.max(0, players[i].score+v); renderScoreBody(); updateLobby(); }
+</script>
+</body>
+</html>

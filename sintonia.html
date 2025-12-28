@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Sintonia — JEA</title>
+<style>
+:root {
+  --bg: #030207;
+  --accent: #00d4ff; 
+  --success: #00ff88;
+  --danger: #ff3b3b;
+  --glass: rgba(255, 255, 255, 0.08);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100dvh; overflow: hidden; }
+
+/* HEADER DINÂMICO */
+.header-jea { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+.btn-icon { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: #fff; height: 44px; padding: 0 15px; border-radius: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.7rem; font-weight: 900; gap: 8px; }
+
+.screen { display: none; flex-direction: column; width: 100%; height: 100%; padding: 20px; position: relative; }
+.screen.active { display: flex; }
+.content-center { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+
+/* SETUP */
+.setup-box { width: 100%; max-width: 350px; }
+.pairs-scroll { max-height: 25dvh; overflow-y: auto; margin-bottom: 10px; }
+.pair-card-fixed { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0,212,255,0.2); }
+.input-active-zone { background: var(--glass); padding: 20px; border-radius: 25px; border: 2px dashed rgba(0,212,255,0.3); }
+.input-active-zone input { width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--accent); color: #fff; padding: 12px; margin-bottom: 10px; text-align: center; font-size: 1rem; }
+
+/* GAMEPLAY */
+#turn-label { font-size: 2rem; font-weight: 1000; color: #fff; text-shadow: 0 0 20px var(--accent); margin-bottom: 15px; text-transform: uppercase; }
+.flip-container { perspective: 1000px; width: 280px; height: 100px; margin-bottom: 25px; }
+.flip-card { position: relative; width: 100%; height: 100%; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+.flip-card.revealed { transform: rotateX(180deg); }
+.card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent); }
+.card-front { background: #111; color: var(--accent); font-weight: 900; letter-spacing: 1px; }
+.card-back { background: var(--accent); color: #000; transform: rotateX(180deg); font-size: 1.3rem; font-weight: 900; text-transform: uppercase; }
+
+.core-ring { width: 160px; height: 160px; border: 4px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+.core-ring.active { border-color: var(--accent); box-shadow: 0 0 50px var(--accent); transform: scale(1.05); }
+
+/* PADS */
+.pads-container { position: absolute; bottom: 40px; left: 30px; right: 30px; display: flex; justify-content: space-between; }
+.bio-pad { width: 95px; height: 95px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.bio-pad.pressed { border-color: var(--accent); box-shadow: 0 0 30px var(--accent); transform: scale(1.1); background: rgba(0,212,255,0.1); }
+.bio-name { font-size: 0.65rem; color: var(--accent); font-weight: 900; margin-top: 5px; text-transform: uppercase; width: 85px; text-align: center; }
+
+/* PLACAR E MODAIS */
+.score-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.score-controls { display: none; align-items: center; gap: 10px; }
+.score-controls.active { display: flex; }
+.btn-mini { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--accent); background: none; color: #fff; font-weight: 900; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.97); display: none; align-items: center; justify-content: center; z-index: 9000; padding: 20px; }
+.modal-box { background: #0d0d0f; border: 1px solid var(--accent); border-radius: 30px; padding: 30px; width: 100%; max-width: 350px; text-align: center; }
+
+/* BOTÕES */
+button { padding: 18px; border-radius: 20px; border: none; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+.btn-main { background: #fff; color: #000; width: 100%; }
+.btn-ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); font-size: 0.75rem; width: 100%; }
+
+#result-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 85%; padding: 40px; border-radius: 30px; font-weight: 1000; z-index: 10000; text-align: center; transition: 0.3s; }
+#result-toast.show { transform: translate(-50%, -50%) scale(1); }
+
+@keyframes shake { 0%, 100% { transform: translate(0); } 20% { transform: translate(-10px, 5px); } 80% { transform: translate(10px, -5px); } }
+.shake-ani { animation: shake 0.12s infinite; }
+</style>
+</head>
+<body>
+
+    <div class="header-jea">
+        <button class="btn-icon" id="mute-btn" onclick="toggleMute()">🔊</button>
+        <button class="btn-icon" id="btn-score-header" onclick="openModal('modal-score')" style="display:none">🏆 PLACAR</button>
+        <button class="btn-icon" onclick="openModal('modal-menu')">☰ MENU</button>
+    </div>
+
+    <div id="result-toast"></div>
+
+    <div id="scr-setup" class="screen active">
+        <div class="content-center">
+            <h1 style="color:var(--accent); font-size: 2.8rem; margin:0">SINTONIA</h1>
+            <p style="opacity:0.4; letter-spacing: 3px; font-size: 0.6rem; margin-bottom: 25px;">JEA IMMERSIVE EXPERIENCE</p>
+            
+            <div class="setup-box">
+                <div class="pairs-scroll" id="fixed-list"></div>
+                <div class="input-active-zone">
+                    <input type="text" id="in-p1" placeholder="JOGADOR A">
+                    <input type="text" id="in-p2" placeholder="JOGADOR B">
+                    <button class="btn-ghost" onclick="confirmPair()">+ ADICIONAR DUPLA</button>
+                </div>
+            </div>
+            <button class="btn-main" onclick="startWithCheck()" style="margin-top: 25px;">INICIAR CONEXÃO</button>
+        </div>
+    </div>
+
+    <div id="scr-game" class="screen">
+        <div class="content-center">
+            <div id="turn-label">---</div>
+            <div class="flip-container" onclick="revealCard()">
+                <div class="flip-card" id="flip-card">
+                    <div class="card-front">TOQUE PARA REVELAR TEMA</div>
+                    <div class="card-back" id="txt-tema">TEMA</div>
+                </div>
+            </div>
+            <div class="core-ring" id="ring">
+                <div id="timer-display" style="font-size: 3.5rem; font-weight: 1000;">---</div>
+            </div>
+            <p id="hint-text" style="opacity:0.3; font-size: 0.6rem; font-weight: 900; margin-top: 20px;">SISTEMA AGUARDANDO REVELAÇÃO</p>
+        </div>
+        <div class="pads-container">
+            <div id="pad-l" class="bio-pad"><div class="bio-name" id="label-l">--</div></div>
+            <div id="pad-r" class="bio-pad"><div class="bio-name" id="label-r">--</div></div>
+        </div>
+        <div id="touch-zone" style="position:absolute; inset:0; z-index:100; display:none" ontouchstart="handleTouch(event)" ontouchend="handleTouch(event)"></div>
+    </div>
+
+    <div id="modal-score" class="modal"><div class="modal-box">
+        <h3 style="color:var(--accent)">PLACAR GERAL</h3>
+        <div id="score-list" style="margin: 20px 0; max-height: 250px; overflow-y: auto;"></div>
+        <button class="btn-ghost" id="btn-manual" onclick="toggleManual()" style="margin-bottom:10px">AJUSTE MANUAL</button>
+        <button class="btn-main" onclick="closeScoreModal()">FECHAR</button>
+    </div></div>
+
+    <div id="modal-menu" class="modal"><div class="modal-box">
+        <button class="btn-ghost" onclick="openRules()" style="margin-bottom:10px; color:#fff">REGRAS</button>
+        <button class="btn-ghost" onclick="location.reload()" style="margin-bottom:10px; color:#fff">REINICIAR</button>
+        <button class="btn-main" onclick="closeModal('modal-menu')">VOLTAR</button>
+    </div></div>
+
+    <div id="modal-rules" class="modal"><div class="modal-box">
+        <h3 style="color:var(--accent)">REGRAS</h3>
+        <p style="text-align: left; font-size: 0.85rem; line-height: 1.6; opacity: 0.8; margin-bottom: 25px;">
+            1. Revele o tema.<br>
+            2. Ambos tocam nos pads juntos.<br>
+            3. No "FALEM!", digam a palavra ao mesmo tempo.<br>
+            4. Se baterem a sintonia, ganham ponto!
+        </p>
+        <button class="btn-main" onclick="closeModal('modal-rules')">ENTENDI</button>
+    </div></div>
+
+    <div id="modal-vote" class="modal"><div class="modal-box">
+        <h3 style="letter-spacing:1px">HOUVE SINTONIA?</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:20px">
+            <button onclick="endTurn(false)" style="background:var(--danger); color:#fff">NÃO</button>
+            <button onclick="endTurn(true)" style="background:var(--success); color:#000">SIM</button>
+        </div>
+    </div></div>
+
+<script>
+let duplas = [], indexTurno = 0, isPressing = false, countdown, audioCtx, isMuted = false, manualActive = false;
+const temas = ["VILÃO FAMOSO", "UMA SOBREMESA", "UMA VIAGEM", "ALGO COM MEDO", "TIME DE FUTEBOL", "SABOR DE PIZZA", "COR", "PERSONAGEM", "ESTILO MUSICAL"];
+
+function toggleMute() { isMuted = !isMuted; document.getElementById("mute-btn").innerText = isMuted ? "🔇" : "🔊"; }
+
+function playSfx(f, d=0.15, type='sine') { 
+    if(!audioCtx || isMuted) return; 
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(); 
+    o.type=type; o.connect(g); g.connect(audioCtx.destination); 
+    o.frequency.setValueAtTime(f, audioCtx.currentTime); 
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime); 
+    o.start(); o.stop(audioCtx.currentTime+d); 
+}
+
+function confirmPair() {
+    const p1 = document.getElementById('in-p1').value, p2 = document.getElementById('in-p2').value;
+    if(!p1 || !p2) return;
+    duplas.push({p1, p2, pts: 0});
+    document.getElementById('in-p1').value = '';
+    document.getElementById('in-p2').value = '';
+    renderPairs();
+}
+
+function renderPairs() {
+    const list = document.getElementById('fixed-list');
+    list.innerHTML = duplas.map((d, i) => `
+        <div class="pair-card-fixed">
+            <div style="font-size:0.85rem; font-weight:700">${d.p1} & ${d.p2}</div>
+            <button style="background:none; color:var(--danger); font-size:1.4rem;" onclick="removePair(${i})">×</button>
+        </div>
+    `).join('');
+}
+
+function removePair(i) { duplas.splice(i, 1); renderPairs(); }
+
+function startWithCheck() {
+    const p1 = document.getElementById('in-p1').value, p2 = document.getElementById('in-p2').value;
+    if(p1 && p2) duplas.push({p1, p2, pts: 0});
+    if(duplas.length < 2) return alert("Cadastre pelo menos 2 duplas!");
+    
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    document.getElementById('btn-score-header').style.display = "flex";
+    show('scr-game');
+    updateScoreUI();
+    startRound();
+}
+
+function startRound() {
+    const d = duplas[indexTurno];
+    document.getElementById("turn-label").innerText = `${d.p1} & ${d.p2}`;
+    document.getElementById("label-l").innerText = d.p1;
+    document.getElementById("label-r").innerText = d.p2;
+    document.getElementById("txt-tema").innerText = temas[Math.floor(Math.random()*temas.length)];
+    document.getElementById("flip-card").classList.remove("revealed");
+    document.getElementById("touch-zone").style.display = "none";
+    document.getElementById("timer-display").innerText = "---";
+    document.getElementById("ring").className = "core-ring";
+    isPressing = false;
+}
+
+function revealCard() {
+    document.getElementById("flip-card").classList.add("revealed");
+    document.getElementById("touch-zone").style.display = "block";
+    playSfx(600, 0.2);
+}
+
+function handleTouch(e) {
+    const count = e.touches.length;
+    document.getElementById("pad-l").classList.toggle("pressed", count >= 1);
+    document.getElementById("pad-r").classList.toggle("pressed", count >= 2);
+    if(count >= 2 && !isPressing) {
+        isPressing = true;
+        document.getElementById("ring").classList.add("active");
+        let t = 3;
+        countdown = setInterval(() => {
+            if(t > 0) { playSfx(400+(3-t)*100); document.getElementById("timer-display").innerText = t--; }
+            else { clearInterval(countdown); document.getElementById("timer-display").innerText = "FALEM!"; playSfx(800, 0.4); openModal('modal-vote'); }
+        }, 1000);
+    } else if (count < 2 && isPressing) {
+        clearInterval(countdown); isPressing = false;
+        document.getElementById("ring").classList.remove("active");
+        document.getElementById("timer-display").innerText = "---";
+    }
+}
+
+function endTurn(win) {
+    closeModal('modal-vote');
+    const toast = document.getElementById("result-toast");
+    if(win) {
+        duplas[indexTurno].pts++;
+        toast.innerText = "CONEXÃO ESTABELECIDA";
+        toast.style.background = "var(--success)"; toast.style.color = "#000";
+        playSfx(1000, 0.6);
+        setTimeout(() => { toast.classList.remove("show"); nextPlayer(); }, 2000);
+    } else {
+        toast.innerText = "FALHA NA CONEXÃO";
+        toast.style.background = "var(--danger)"; toast.style.color = "#fff";
+        document.getElementById("scr-game").classList.add("shake-ani");
+        playSfx(100, 0.5, 'sawtooth');
+        setTimeout(() => { 
+            toast.classList.remove("show"); 
+            document.getElementById("scr-game").classList.remove("shake-ani"); 
+            nextPlayer(); 
+        }, 1200);
+    }
+    toast.classList.add("show");
+    updateScoreUI();
+}
+
+function nextPlayer() { indexTurno = (indexTurno + 1) % duplas.length; startRound(); }
+
+function updateScoreUI() {
+    const list = document.getElementById('score-list');
+    list.innerHTML = duplas.map((d, i) => `
+        <div class="score-row">
+            <span style="font-weight:700">${d.p1}/${d.p2}</span>
+            <div style="display:flex; align-items:center; gap:15px">
+                <div class="score-controls ${manualActive ? 'active' : ''}">
+                    <button class="btn-mini" onclick="adj(${i},-1)">-</button>
+                </div>
+                <b style="font-size:1.3rem; min-width:25px">${d.pts}</b>
+                <div class="score-controls ${manualActive ? 'active' : ''}">
+                    <button class="btn-mini" onclick="adj(${i},1)">+</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleManual() {
+    manualActive = !manualActive;
+    document.getElementById('btn-manual').innerText = manualActive ? "SALVAR AJUSTES" : "AJUSTE MANUAL";
+    updateScoreUI();
+}
+
+function closeScoreModal() {
+    manualActive = false;
+    document.getElementById('btn-manual').innerText = "AJUSTE MANUAL";
+    closeModal('modal-score');
+}
+
+function adj(i, v) { duplas[i].pts = Math.max(0, duplas[i].pts + v); updateScoreUI(); }
+function openRules() { closeModal('modal-menu'); openModal('modal-rules'); }
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
+function openModal(id){ document.getElementById(id).style.display = "flex"; }
+function closeModal(id){ document.getElementById(id).style.display = "none"; }
+</script>
+</body>
+</html>

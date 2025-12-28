@@ -34,13 +34,16 @@ body {
 
 .hub-header {
   position: absolute; top: env(safe-area-inset-top); left: 0; width: 100%;
-  padding-top: 15px; text-align: center; z-index: 50;
+  padding-top: 10px; text-align: center; z-index: 50;
+  display: flex; justify-content: center;
 }
-.hub-header h1 { 
-  margin: 0; font-size: 0.7rem; letter-spacing: 7px; 
-  font-weight: 300; opacity: 0.4; text-transform: uppercase;
+
+/* Tamanho reduzido para 95px para não invadir os cards */
+.logo-oficial {
+  width: 95px;
+  height: 95px;
+  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
 }
-.hub-header b { color: var(--accent); font-weight: 900; }
 
 #sound-toggle {
   position: absolute; top: calc(env(safe-area-inset-top) + 10px); right: 20px;
@@ -133,7 +136,27 @@ body {
   <div id="sound-toggle" onclick="toggleAudio()">🔊</div>
   
   <header class="hub-header">
-    <h1>Jogos <b>Entre Amigos</b></h1>
+    <div class="logo-oficial">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="#FFD700"/>
+        <defs>
+          <path id="pathTop" d="M 20,50 A 30,30 0 1,1 80,50" fill="none" />
+          <path id="pathBottom" d="M 12,50 A 38,38 0 0,0 88,50" fill="none" />
+        </defs>
+        <text font-family="Arial Black, Arial" font-weight="900" font-size="12" fill="#030207" style="letter-spacing: 1px;">
+          <textPath href="#pathTop" startOffset="50%" text-anchor="middle">JOGOS</textPath>
+        </text>
+        <g transform="translate(0, -2)">
+          <rect x="31" y="36" width="20" height="32" rx="3" fill="#030207" opacity="0.4" transform="rotate(-20 41 52)"/>
+          <rect x="49" y="36" width="20" height="32" rx="3" fill="#030207" opacity="0.7" transform="rotate(20 59 52)"/>
+          <rect x="40" y="33" width="20" height="32" rx="3" fill="#030207" stroke="#FFD700" stroke-width="1"/>
+          <circle cx="50" cy="39" r="2" fill="#FFD700"/>
+        </g>
+        <text font-family="Arial Black, Arial" font-weight="900" font-size="10.5" fill="#030207" style="letter-spacing: 0.5px;">
+          <textPath href="#pathBottom" startOffset="50%" text-anchor="middle">ENTRE AMIGOS</textPath>
+        </text>
+      </svg>
+    </div>
   </header>
 
   <button class="nav-btn nav-prev" onclick="move(-1)">‹</button>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jea-hub-v3';
+const CACHE_NAME = 'jea-hub-v4'; // Mudei para v4
 const assets = [
   './',
   './index.html',
@@ -6,6 +6,8 @@ const assets = [
   './icon-192.png',
   './icon-512.png'
 ];
+// ... restante do código do sw.js igual
+
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

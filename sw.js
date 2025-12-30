@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jea-hub-v10';
+const CACHE_NAME = 'jea-hub-v11';
 const assets = [
   '/',
   'index.html',
@@ -7,17 +7,11 @@ const assets = [
   'icon-512.png'
 ];
 
-// Instalação
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(assets);
-    })
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(assets)));
   self.skipWaiting();
 });
 
-// Ativação e limpeza de cache antigo
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -29,11 +23,6 @@ self.addEventListener('activate', (e) => {
   return self.clients.claim();
 });
 
-// Fetch (Cache First)
 self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request);
-    })
-  );
+  e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
 });

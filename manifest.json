@@ -1,10 +1,10 @@
 {
   "name": "Jogos Entre Amigos",
-  "short_name": "Entre Amigos",
+  "short_name": "JEA Hub",
   "description": "Hub de jogos sociais para jogar com amigos.",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#FFD700",
+  "background_color": "#030207",
   "theme_color": "#FFD700",
   "orientation": "portrait",
   "icons": [

@@ -370,7 +370,13 @@ function updateScoreUI() {
 function toggleManual() { manualActive = !manualActive; document.getElementById('btn-manual').innerText = manualActive ? "SALVAR" : "AJUSTE MANUAL"; updateScoreUI(); }
 function adj(i, v) { duplas[i].pts = Math.max(0, duplas[i].pts + v); updateScoreUI(); }
 function openRules() { closeModal('modal-menu'); openModal('modal-rules'); }
-function voltarHub() { closeModal('modal-menu'); showScreen('scr-setup'); document.getElementById('btn-score-header').style.display = "none"; }
+function voltarHub() {
+    closeModal('modal-menu'); // Fecha o menu primeiro
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 100); // Aguarda 100ms para o redirecionamento ficar mais fluido
+}
+
 function showScreen(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
 function openModal(id){ document.getElementById(id).style.display = "flex"; playSfx(300, 0.1); }
 function closeModal(id){ document.getElementById(id).style.display = "none"; playSfx(200, 0.1); }

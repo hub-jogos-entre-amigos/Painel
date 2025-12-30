@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jea-hub-v11';
+const CACHE_NAME = 'jea-hub-v12';
 const assets = [
   '/',
   'index.html',

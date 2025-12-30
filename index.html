@@ -19,6 +19,7 @@
 </script>
 
 <style>
+/* --- ESTILOS ORIGINAIS DO HUB [PRESERVADOS] --- */
 :root { --bg: #030207; --gold: #FFD700; --text: #ffffff; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -26,7 +27,6 @@ body {
   margin: 0; background: var(--bg); color: var(--text); 
   font-family: 'Inter', sans-serif; height: 100dvh; overflow: hidden; 
   display: flex; justify-content: center;
-  /* Resolve o problema da barra superior empurrando o layout */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -53,7 +53,7 @@ body {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     width: 88%; 
-    height: 85%; /* Altura ajustada para evitar corte no botão inferior */
+    height: 85%; 
     max-height: 560px; 
     border-radius: 40px; padding: 25px 20px;
     display: flex; flex-direction: column; align-items: center; text-align: center; 
@@ -89,9 +89,88 @@ body {
 .nav-dots { display: flex; gap: 10px; justify-content: center; padding: 10px 0 20px; }
 .dot { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); transition: 0.4s; }
 .dot.active { width: 30px; background: var(--gold); }
+
+/* --- ESTILOS DA VINHETA [PRESERVADOS] --- */
+#vinheta-layer {
+  position: fixed; inset: 0; background: var(--bg);
+  z-index: 9999; display: flex; justify-content: center; align-items: center;
+  cursor: pointer;
+}
+
+#intro-container {
+    width: 100%; max-width: 500px; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;
+}
+
+.tap-hint {
+    position: absolute; font-size: 1.1rem; text-transform: uppercase; 
+    letter-spacing: 4px; font-weight: 900; color: var(--gold);
+    animation: blink 1.5s infinite; z-index: 10;
+}
+
+.logo-wrapper { display: none; flex-direction: column; align-items: center; justify-content: center; }
+.logo-wrapper.active { display: flex; }
+
+#jea-logo {
+    width: 250px; height: 250px;
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.4));
+    animation: logoEntrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.phrase {
+    margin-top: 30px; font-size: 1.1rem; font-weight: 400; color: rgba(255,255,255,0.9);
+    font-family: 'Segoe UI', system-ui, sans-serif; font-style: italic;
+    opacity: 0; animation: fadeIn 1s forwards 0.8s;
+}
+
+@keyframes logoEntrance {
+    0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+#mute-toggle {
+    position: fixed; top: 20px; left: 20px; z-index: 10000;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: white; border-radius: 50%; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
 </style>
 </head>
 <body>
+
+<div id="mute-toggle" onclick="toggleMute(event)">🔊</div>
+
+<div id="vinheta-layer" onclick="iniciarAbertura()">
+    <div id="intro-container">
+        <div class="tap-hint" id="hint">Toque para entrar</div>
+        <div class="logo-wrapper" id="logo-box">
+            <svg id="jea-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="48" fill="#FFD700"/>
+              <defs>
+                <path id="pathTop" d="M 20,50 A 30,30 0 1,1 80,50" fill="none" />
+                <path id="pathBottom" d="M 12,50 A 38,38 0 0,0 88,50" fill="none" />
+              </defs>
+              <text font-family="Arial Black, Arial" font-weight="900" font-size="12" fill="#030207" style="letter-spacing: 1px;">
+                <textPath href="#pathTop" startOffset="50%" text-anchor="middle">JOGOS</textPath>
+              </text>
+              <g transform="translate(0, -2)">
+                <rect x="31" y="36" width="20" height="32" rx="3" fill="#030207" opacity="0.4" transform="rotate(-20 41 52)"/>
+                <rect x="49" y="36" width="20" height="32" rx="3" fill="#030207" opacity="0.7" transform="rotate(20 59 52)"/>
+                <rect x="40" y="33" width="20" height="32" rx="3" fill="#030207" stroke="#FFD700" stroke-width="1"/>
+                <circle cx="50" cy="39" r="2" fill="#FFD700"/>
+              </g>
+              <text font-family="Arial Black, Arial" font-weight="900" font-size="10.5" fill="#030207" style="letter-spacing: 0.5px;">
+                <textPath href="#pathBottom" startOffset="50%" text-anchor="middle">ENTRE AMIGOS</textPath>
+              </text>
+            </svg>
+            <div class="phrase">"Onde o celular não distancia, aproxima."</div>
+        </div>
+    </div>
+</div>
 
 <div id="hub">
     <div class="header"><h1>Jogos Entre Amigos</h1></div>
@@ -102,76 +181,89 @@ body {
 </div>
 
 <script>
-// TEXTOS ORIGINAIS DO SEU BACKUP RESTAURADOS ABAIXO:
+let audioCtx = null;
+let iniciado = false;
+let isMuted = false;
+
+// Função base para sons
+function playS(f, t='sine', d=0.1, delay=0, vol=0.1) {
+    if (isMuted) return;
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const time = audioCtx.currentTime + delay;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = t;
+        o.frequency.setValueAtTime(f, time);
+        g.gain.setValueAtTime(vol, time);
+        g.gain.exponentialRampToValueAtTime(0.0001, time + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(time); o.stop(time + d);
+    } catch(e) { console.error("Erro Áudio:", e); }
+}
+
+// Som de Deslize (Swipe)
+function playSwipeS() {
+    if (isMuted) return;
+    playS(600, 'sine', 0.15, 0, 0.05); // Som sutil e rápido
+}
+
+function toggleMute(e) {
+    e.stopPropagation();
+    isMuted = !isMuted;
+    document.getElementById('mute-toggle').innerText = isMuted ? '🔇' : '🔊';
+}
+
+function iniciarAbertura() {
+    if (iniciado) return;
+    iniciado = true;
+    
+    document.getElementById('hint').style.display = 'none';
+    document.getElementById('logo-box').classList.add('active');
+
+    // Sequência da vinheta
+    [440, 554, 659, 880].forEach((freq, i) => playS(freq, 'sine', 0.1, i * 0.08, 0.07));
+
+    setTimeout(() => {
+        playS(523, 'sine', 1.2, 0, 0.1);
+        playS(100, 'triangle', 0.3, 0, 0.15);
+    }, 320);
+
+    setTimeout(() => {
+        const layer = document.getElementById('vinheta-layer');
+        layer.style.transition = "opacity 1s ease";
+        layer.style.opacity = "0";
+        setTimeout(() => layer.style.display = "none", 1000);
+    }, 4000);
+}
+
+// --- LÓGICA DO HUB [PRESERVADA] ---
 const JEA_GAMES = [
-    { 
-        title: "NEM PENSAR", 
-        desc: "Onde o óbvio é o seu maior inimigo. Faça o grupo adivinhar a palavra secreta, mas cuidado: as respostas mais comuns estão proibidas!", 
-        icon: "🤫", 
-        tags: ["PARTY GAME", "CRIATIVIDADE", "RÁPIDO", "3-10 PLAYERS"], 
-        style: "style-nempensar", 
-        url: "nem-pensar.html" 
-    },
-    { 
-        title: "CADÊ AS LETRAS?", 
-        desc: "Seus dedos e sua mente precisam voar. Uma categoria é sorteada: quem consegue encontrar as palavras e descartar suas letras primeiro?", 
-        icon: "🔤", 
-        tags: ["AGILIDADE", "VOCABULÁRIO", "COMPETITIVO", "2-6 PLAYERS"], 
-        style: "style-letras", 
-        url: "letras.html" 
-    },
-    { 
-        title: "IMPERIUM", 
-        desc: "Ninguém é o que parece. Use influências políticas e assuma papéis ocultos para desmascarar traidores antes que o trono do Rei caia.", 
-        icon: "🏰", 
-        tags: ["ESTRATÉGIA", "BLEFE", "SOCIAL", "4-12 PLAYERS"], 
-        style: "style-imperium", 
-        url: "imperium.html" 
-    },
-    { 
-        title: "VOCÊ NÃO ME CONHECE", 
-        desc: "O quanto você sabe sobre quem está ao seu lado? Conte histórias inusitadas e tente descobrir quem está falando a verdade no grupo.", 
-        icon: "🎭", 
-        tags: ["HISTÓRIAS", "SOCIAL", "DEDUÇÃO", "3-8 PLAYERS"], 
-        style: "style-conhece", 
-        url: "conhece.html" 
-    }
+    { title: "NEM PENSAR", desc: "Onde o óbvio é o seu maior inimigo. Faça o grupo adivinhar a palavra secreta, mas cuidado: as respostas mais comuns estão proibidas!", icon: "🤫", tags: ["PARTY GAME", "CRIATIVIDADE", "RÁPIDO", "3-10 PLAYERS"], style: "style-nempensar", url: "nem-pensar.html" },
+    { title: "CADÊ AS LETRAS?", desc: "Seus dedos e sua mente precisam voar. Uma categoria é sorteada: quem consegue encontrar as palavras e descartar suas letras primeiro?", icon: "🔤", tags: ["AGILIDADE", "VOCABULÁRIO", "COMPETITIVO", "2-6 PLAYERS"], style: "style-letras", url: "letras.html" },
+    { title: "IMPERIUM", desc: "Ninguém é o que parece. Use influências políticas e assuma papéis ocultos para desmascarar traidores antes que o trono do Rei caia.", icon: "🏰", tags: ["ESTRATÉGIA", "BLEFE", "SOCIAL", "4-12 PLAYERS"], style: "style-imperium", url: "imperium.html" },
+    { title: "VOCÊ NÃO ME CONHECE", desc: "O quanto você sabe sobre quem está ao seu lado? Conte histórias inusitadas e tente descobrir quem está falando a verdade no grupo.", icon: "🎭", tags: ["HISTÓRIAS", "SOCIAL", "DEDUÇÃO", "3-8 PLAYERS"], style: "style-conhece", url: "conhece.html" }
 ];
 
 let cur = 0;
-
 function render() {
     const container = document.getElementById("gameCarousel");
     const dots = document.getElementById("dots");
     container.innerHTML = ""; dots.innerHTML = "";
-    
     JEA_GAMES.forEach((game, idx) => {
         const card = document.createElement("div");
         card.className = `game-card ${game.style}`;
-        
         if(idx === cur) card.classList.add("card-active");
         else if(idx === (cur - 1 + JEA_GAMES.length) % JEA_GAMES.length) card.classList.add("card-left");
         else if(idx === (cur + 1) % JEA_GAMES.length) card.classList.add("card-right");
         else card.classList.add("card-hidden");
-        
-        card.innerHTML = `
-            <div class="game-icon-slot">${game.icon}</div>
-            <div class="game-info">
-                <h2>${game.title}</h2>
-                <p>${game.desc}</p>
-            </div>
-            <div class="game-meta">
-                <div class="tags">${game.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-                <button class="btn-play" onclick="location.href='${game.url}'">JOGAR AGORA</button>
-            </div>
-        `;
+        card.innerHTML = `<div class="game-icon-slot">${game.icon}</div><div class="game-info"><h2>${game.title}</h2><p>${game.desc}</p></div><div class="game-meta"><div class="tags">${game.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div><button class="btn-play" onclick="location.href='${game.url}'">JOGAR AGORA</button></div>`;
         container.appendChild(card);
         const d = document.createElement("div");
         d.className = `dot ${idx === cur ? 'active' : ''}`;
         dots.appendChild(d);
     });
 }
-
 render();
 
 let startX = 0;
@@ -179,6 +271,7 @@ document.addEventListener('touchstart', e => startX = e.touches[0].clientX);
 document.addEventListener('touchend', e => {
     let diff = startX - e.changedTouches[0].clientX;
     if(Math.abs(diff) > 50) {
+        playSwipeS(); // Sonoplastia de deslize adicionada
         if(diff > 0) cur = (cur + 1) % JEA_GAMES.length;
         else cur = (cur - 1 + JEA_GAMES.length) % JEA_GAMES.length;
         render();

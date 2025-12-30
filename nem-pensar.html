@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>NEM PENSAR</title>
+
+<style>
+:root {
+  --bg: #030207;
+  --accent: #FFD700; 
+  --text: #ffffff;
+  --glass: rgba(255, 255, 255, 0.08);
+  --success: #28a745;
+  --danger: #dc3545;
+  --card-white: #fdfdfb;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; height: 100dvh; overflow: hidden; display: flex; justify-content: center; }
+
+/* CONTAINERS PRINCIPAIS */
+#container-vinheta { position: fixed; inset: 0; z-index: 9999; display: flex; justify-content: center; align-items: center; background: var(--bg); transition: opacity 0.8s ease; }
+#container-jogo { display: none; width: 100%; max-width: 480px; height: 100%; position: relative; flex-direction: column; padding: 10px; }
+#container-jogo.ativo { display: flex; }
+
+/* CSS DA VINHETA */
+#scr-teaser {
+    width: 100%; max-width: 500px; height: 100%;
+    background: radial-gradient(circle at center, #2e2800 0%, #030207 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 30px; text-align: center; position: relative;
+}
+.tap-hint { position: absolute; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; color: var(--accent); animation: blink 1.5s infinite; z-index: 10; }
+.teaser-content { display: none; flex-direction: column; align-items: center; }
+.teaser-content.active { display: flex; }
+.flip-icon { font-size: 8rem; filter: drop-shadow(0 0 30px var(--accent)); animation: flipAnim 6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.teaser-title { font-size: 3.5rem; font-weight: 1000; letter-spacing: 2px; color: var(--accent); margin-top: 20px; text-shadow: 0 0 25px rgba(255, 215, 0, 0.6); opacity: 0; }
+.teaser-title.show { animation: fadeIn 0.8s forwards; }
+.teaser-phrase { font-size: 1.2rem; line-height: 1.5; max-width: 320px; color: rgba(255,255,255,0.9); margin-top: 15px; opacity: 0; }
+.teaser-phrase.show { animation: fadeIn 1s forwards; }
+@keyframes flipAnim { 0% { transform: rotateY(0deg) scale(0.5); opacity: 0; } 15% { transform: rotateY(180deg) scale(1.1); opacity: 1; } 100% { transform: rotateY(1800deg) scale(1); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+/* CSS DO JOGO (Mantido Original) */
+.nav-top { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; justify-content: space-between; }
+.btn-nav { background: var(--glass); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.screen { display: none; flex-direction: column; width: 100%; height: 100%; padding: 10px; text-align: center; position: relative; }
+.screen.active { display: flex; }
+.player-row { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 12px 15px; border-radius: 15px; margin-bottom: 8px; }
+.btn-remove { background: var(--danger); color: #fff; border: none; padding: 8px 15px; border-radius: 10px; font-size: 0.7rem; font-weight: 900; width: auto !important; }
+.score-row { display: flex; justify-content: space-between; align-items: center; background: var(--glass); padding: 12px; border-radius: 15px; margin-bottom: 8px; }
+.adj-btn { width: 35px !important; padding: 5px !important; background: #333; color: #fff; border-radius: 8px; font-weight: 900; }
+.timer-box { position: relative; width: 80px; height: 80px; margin: 40px auto 10px; }
+.timer-svg { transform: rotate(-90deg); width: 80px; height: 80px; }
+.timer-svg circle { fill: none; stroke-width: 6; cx: 40; cy: 40; r: 36; stroke-linecap: round; }
+.circle-bg { stroke: rgba(255,255,255,0.1); }
+.circle-prog { stroke: var(--success); stroke-dasharray: 226; stroke-dashoffset: 0; transition: stroke 1s linear, stroke-dashoffset 1s linear; }
+#timerText { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 900; }
+.card-container { flex: 1; perspective: 1000px; display: flex; flex-direction: column; margin-bottom: 10px; }
+.card-ui { flex: 1; background: var(--card-white); border-radius: 25px; padding: 15px; display: flex; flex-direction: column; position: relative; color: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backface-visibility: hidden; }
+.flip-anim { animation: flipEffect 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes flipEffect { 0% { transform: rotateY(90deg) scale(0.9); opacity: 0; } 100% { transform: rotateY(0deg) scale(1); opacity: 1; } }
+.card-pts-badge { position: absolute; top: 12px; right: 12px; background: var(--accent); color: #000; padding: 5px 12px; border-radius: 10px; font-weight: 900; font-size: 0.8rem; }
+.word-tag { background: var(--accent); color: #000; font-size: 1.8rem; font-weight: 1000; padding: 15px 10px; border-radius: 15px; margin: 35px 0 15px 0; text-transform: uppercase; }
+.forbidden-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+.forbidden-list li { background: #fff; color: #000; padding: 10px; border-radius: 12px; font-weight: 800; border: 2px solid #eee; font-size: 0.85rem; }
+button { width: 100%; padding: 16px; border-radius: 18px; border: none; font-size: 1rem; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+button:active { transform: scale(0.96); }
+.btn-primary { background: #fff; color: #000; }
+.btn-accent { background: var(--accent); color: #000; }
+.btn-outline { background: var(--glass); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+.btn-success { background: var(--success); color: #fff; }
+.modal { position: absolute; inset: 0; background: rgba(0,0,0,0.96); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 2000; }
+.modal-box { background: #111; padding: 25px; border-radius: 30px; border: 2px solid var(--accent); width: 100%; max-width: 400px; }
+</style>
+</head>
+<body>
+
+<div id="container-vinheta" onclick="iniciarTeaser()">
+    <div id="scr-teaser">
+        <div class="tap-hint" id="hint">Toque para desafiar o óbvio</div>
+        <div class="teaser-content" id="content">
+            <div class="flip-icon">🤫</div>
+            <div class="teaser-title" id="t-title">NEM PENSAR</div>
+            <div class="teaser-phrase" id="t-phrase">
+                Cuidado com o que você diz. Aqui, as palavras óbvias são suas maiores inimigas.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="container-jogo">
+  <div class="nav-top">
+    <button class="btn-nav" id="sound-btn" onclick="toggleAudio()">🔊</button>
+    <button class="btn-nav" onclick="openModal('modal-menu')">☰</button>
+  </div>
+
+  <div id="scr-setup" class="screen active">
+    <h1 style="font-size:2.5rem; margin-top: 60px; color: var(--accent);">NEM PENSAR!</h1>
+    <input id="in-name" placeholder="NOME DO JOGADOR" maxlength="15" style="width:100%; padding:18px; border-radius:15px; background:var(--glass); color:#fff; border:1px solid rgba(255,255,255,0.1); margin-bottom:10px; text-align:center; font-weight:900;">
+    <button class="btn-accent" onclick="addPlayer()">+ ADICIONAR</button>
+    <div id="player-list" style="overflow-y:auto; flex:1; margin: 15px 0;"></div>
+    <button class="btn-primary" onclick="startGame()">INICIAR PARTIDA</button>
+  </div>
+
+  <div id="scr-lobby" class="screen">
+    <h3 style="margin-top:60px">Vez de Narrar:</h3>
+    <h1 id="lb-name" style="color:var(--accent); font-size:2.8rem; margin:10px 0">?</h1>
+    <div style="margin: 20px 0; padding: 25px; background: var(--glass); border-radius: 25px;">
+      <p style="margin:0; opacity:0.6; font-weight:700">PONTUAÇÃO</p>
+      <div id="lb-score" style="font-size: 3.5rem; font-weight: 1000; color: var(--accent);">0</div>
+    </div>
+    <button class="btn-outline" onclick="openScore()">📊 PLACAR GERAL</button>
+    <div style="flex:1"></div>
+    <button class="btn-primary" style="height:90px;" onclick="revealCard()">REVELAR CARTA</button>
+  </div>
+
+  <div id="scr-game" class="screen">
+    <div id="timer-container" class="timer-box">
+      <svg class="timer-svg"><circle class="circle-bg"></circle><circle id="timerCircle" class="circle-prog"></circle></svg>
+      <div id="timerText">60</div>
+    </div>
+    <div id="prep-timer" style="font-weight:900; color:var(--accent); font-size:0.8rem; margin-bottom:10px">MEMORIZE: 5s</div>
+    <div class="card-container">
+      <div id="cardUI" class="card-ui">
+        <div class="card-pts-badge" id="cardPts">1 PTS</div>
+        <div class="word-tag" id="cardWord">PALAVRA</div>
+        <ul class="forbidden-list" id="cardForbidden"></ul>
+      </div>
+    </div>
+    <button id="btnSkip" class="btn-outline" style="margin-bottom:8px; border-color:var(--accent)" onclick="skipCard()">🔄 TROCAR (5)</button>
+    <button id="btnReady" class="btn-success" onclick="startRound()">ESTOU PRONTO (5)</button>
+    <button id="btnEndEarly" class="btn-accent" style="display:none" onclick="confirmEnd()">ENCERRAR RODADA</button>
+  </div>
+
+  <div id="scr-decision" class="screen">
+    <h3 style="margin-top:60px">Fim da Rodada</h3>
+    <h1>Quem acertou?</h1>
+    <div id="winnerButtons" style="overflow-y:auto; flex:1; margin:20px 0; display:flex; flex-direction:column; gap:10px"></div>
+    <button class="btn-outline" onclick="noOneGotIt()">Ninguém acertou</button>
+  </div>
+
+  <div id="modal-alert" class="modal">
+    <div class="modal-box">
+      <h2 style="color: var(--accent);">AVISO</h2>
+      <p id="alert-msg" style="font-weight: 700; margin: 20px 0;">Adicione pelo menos 2 jogadores</p>
+      <button class="btn-primary" onclick="closeModal('modal-alert')">OK</button>
+    </div>
+  </div>
+
+  <div id="modal-menu" class="modal">
+    <div class="modal-box">
+      <h2 style="color:var(--accent)">MENU</h2>
+      <button class="btn-outline" onclick="openModal('modal-rules')" style="margin-bottom:10px">📜 Regras</button>
+      <button class="btn-outline" onclick="location.reload()" style="margin-bottom:10px">🔄 Reiniciar</button>
+      <button class="btn-primary" onclick="window.location.href='./index.html'">🏠 VOLTAR AO HUB</button>
+      <button class="btn-accent" onclick="closeModal('modal-menu')" style="margin-top:20px">FECHAR</button>
+    </div>
+  </div>
+
+  <div id="modal-score" class="modal">
+    <div class="modal-box">
+      <h2 style="color:var(--accent)">PLACAR GERAL</h2>
+      <button id="btnEditToggle" class="btn-outline" style="font-size:0.7rem; margin-bottom:15px" onclick="manualEdit = !manualEdit; renderScoreBody()">✏️ AJUSTAR PONTOS</button>
+      <div id="score-body" style="max-height: 40vh; overflow-y: auto;"></div>
+      <button class="btn-primary" onclick="closeModal('modal-score')" style="margin-top:20px">VOLTAR</button>
+    </div>
+  </div>
+
+  <div id="modal-rules" class="modal">
+    <div class="modal-box" style="text-align: left;">
+      <h2 style="color:var(--accent); text-align:center">REGRAS</h2>
+      <p>• Faça seu time adivinhar a palavra no topo sem dizer as proibidas.</p>
+      <p>• Quem acerta ganha os pontos da carta. O narrador ganha 1 ponto.</p>
+      <p>• Proibido: Gesticular, dizer partes da palavra ou traduções.</p>
+      <button class="btn-accent" onclick="closeModal('modal-rules')" style="margin-top:15px">Entendi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- LÓGICA DE TRANSIÇÃO (VINHETA -> JOGO) ---
+let audioCtx = null;
+let teaserIniciado = false;
+
+function iniciarTeaser() {
+    if (teaserIniciado) return;
+    teaserIniciado = true;
+    
+    document.getElementById('hint').style.display = 'none';
+    document.getElementById('content').classList.add('active');
+
+    // Inicializa AudioContext (será compartilhado)
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+
+    // SONS DA VINHETA (ORIGINAL)
+    for(let i=0; i<8; i++) {
+        const timeOffset = (i * 0.3) * (1 - i*0.04); 
+        playS(i % 2 === 0 ? 900 : 700, 'square', 0.05, timeOffset, 0.05);
+    }
+    setTimeout(() => {
+        document.getElementById('t-title').classList.add('show');
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 2.5);
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.1);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 2.5);
+    }, 1500);
+    setTimeout(() => { document.getElementById('t-phrase').classList.add('show'); }, 3000);
+    [4.8, 4.95, 5.1].forEach((t, i) => { playS(1100 + (i*300), 'sine', 0.5, t, 0.08); });
+
+    // TRANSIÇÃO PARA O JOGO (Após os acordes finais da vinheta)
+    setTimeout(() => {
+        const v = document.getElementById('container-vinheta');
+        v.style.opacity = '0';
+        setTimeout(() => {
+            v.remove();
+            document.getElementById('container-jogo').classList.add('ativo');
+        }, 800);
+    }, 5500);
+}
+
+// Auxiliar de som da vinheta
+function playS(f, t='sine', d=0.1, delay=0, vol=0.1) {
+    const time = audioCtx.currentTime + delay;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = t; o.frequency.setValueAtTime(f, time);
+    g.gain.setValueAtTime(vol, time);
+    g.gain.exponentialRampToValueAtTime(0.0001, time + d);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(time); o.stop(time + d);
+}
+
+// --- TODO O CÓDIGO DO JOGO (COPIADO EXATAMENTE IGUAL) ---
+const cards = [
+    {w:"BANANA",p:1,f:["FRUTA","AMARELA","CASCA","MACACO","VITAMINA"]},
+    {w:"GATO",p:1,f:["PET","ANIMAL","MIAU","FELINO","LEITE"]},
+    {w:"SOL",p:1,f:["QUENTE","DIA","LUZ","ESTRELA","VERÃO"]},
+    {w:"INTERNET",p:2,f:["WIFI","REDE","ONLINE","SITE","CONEXÃO"]},
+    {w:"AVIÃO",p:1,f:["VOAR","PILOTO","ASA","AEROPORTO","CÉU"]},
+    {w:"PIPOCA",p:1,f:["MILHO","CINEMA","SAL","QUENTE","PANELA"]},
+    {w:"CELULAR",p:1,f:["TELEFONE","LIGAÇÃO","MENSAGEM","TELA","APP"]},
+    {w:"FUTEBOL",p:1,f:["BOLA","GOL","CAMPO","JOGADOR","ESTÁDIO"]},
+    {w:"CAFÉ",p:1,f:["XÍCARA","PRETO","ACORDAR","BEBIDA","QUENTE"]},
+    {w:"CHUVA",p:1,f:["ÁGUA","NUVEM","MOLHADO","TEMPO","GUARDA-CHUVA"]},
+    {w:"LIVRO",p:1,f:["LER","PÁGINA","HISTÓRIA","BIBLIOTECA","PAPEL"]},
+    {w:"PIZZA",p:2,f:["QUEIJO","ITALIA","MASSA","FATIA","RECHEIO"]},
+    {w:"ESCOVA",p:2,f:["DENTE","CABELO","LIMPAR","PENTEAR","CERDAS"]},
+    {w:"RELÓGIO",p:1,f:["HORA","PULSO","TEMPO","MINUTOS","PONTEIRO"]},
+    {w:"SAPATO",p:1,f:["PÉ","CALÇAR","CADARÇO","MEIA","CHÃO"]},
+    {w:"ESPELHO",p:2,f:["REFLEXO","VIDRO","OLHAR","BANHEIRO","IMAGEM"]},
+    {w:"GELADEIRA",p:2,f:["FRIO","COMIDA","COZINHA","GELO","PORTA"]},
+    {w:"BICICLETA",p:1,f:["PEDAL","RODA","ANDAR","GUIDÃO","ESPORTE"]},
+    {w:"DORMIR",p:1,f:["CAMA","SONHO","NOITE","CANSADO","FECHAR OLHOS"]},
+    {w:"MACACO",p:1,f:["ANIMAL","BANANA","ÁRVORE","PRIMATA","PULAR"]},
+    {w:"DENTISTA",p:2,f:["DENTE","BOCA","MÉDICO","LIMPEZA","DOR"]},
+    {w:"TELEVISÃO",p:1,f:["CANAL","CONTROLE","FILME","ASSISTIR","TELA"]},
+    {w:"CHURRASCO",p:2,f:["CARNE","ESPETO","FOGO","DOMINGO","CARVÃO"]},
+    {w:"PRAIA",p:1,f:["AREIA","MAR","SOL","BANHO","FÉRIAS"]},
+    {w:"DINHEIRO",p:1,f:["NOTAS","MOEDA","BANCO","COMPRAR","CARTEIRA"]},
+    {w:"PADARIA",p:2,f:["PÃO","CAFÉ","MANHÃ","DOCE","FORNO"]},
+    {w:"HOSPITAL",p:1,f:["MÉDICO","DOENTE","REMÉDIO","SAÚDE","AMBULÂNCIA"]},
+    {w:"ESPINHA",p:3,f:["ROSTO","PELE","ADOLESCENTE","ESPREMER","VERMELHA"]},
+    {w:"PUDIM",p:2,f:["DOCE","CALDA","SOBREMESA","CARAMELO","FURINHOS"]},
+    {w:"CANETA",p:1,f:["ESCREVER","TINTA","PAPEL","AZUL","PONTA"]},
+    {w:"GIRAFA",p:2,f:["PESCOÇO","ALTA","ANIMAL","MANCHAS","SAVANA"]},
+    {w:"VAMPIRO",p:2,f:["SANGUE","DRÁCULA","DENTES","MORCEGO","NOITE"]},
+    {w:"REI",p:1,f:["COROA","TRONO","RAINHA","CASTELO","MONARCA"]},
+    {w:"BOMBOM",p:2,f:["CHOCOLATE","DOCE","CAIXA","RECHEIO","EMBALAGEM"]},
+    {w:"VIOLÃO",p:2,f:["MÚSICA","CORDAS","TOCAR","INSTRUMENTO","SOM"]},
+    {w:"BOLO",p:1,f:["ANIVERSÁRIO","DOCE","FORNO","FESTA","VELA"]},
+    {w:"CARRO",p:1,f:["DIRIGIR","RODA","ESTRADA","VEÍCULO","MOTOR"]},
+    {w:"CHAVE",p:1,f:["PORTA","ABRIR","FECHADURA","METAL","CHAVEIRO"]},
+    {w:"COZINHA",p:1,f:["FOGÃO","COMIDA","CASA","GELADEIRA","PRATO"]},
+    {w:"FOGO",p:1,f:["QUENTE","CHAMA","QUEIMAR","INCÊNDIO","FOGÃO"]},
+    {w:"FANTASMA",p:2,f:["ASSOMBRAÇÃO","MEDO","ESPÍRITO","BRANCO","LENÇOL"]},
+    {w:"MALA",p:2,f:["VIAGEM","ROUPA","AEROPORTO","BAGAGEM","FÉRIAS"]},
+    {w:"LUA",p:1,f:["NOITE","CÉU","BRANCA","FASES","ASTRO"]},
+    {w:"ÓCULOS",p:2,f:["VER","LENTE","ROSTO","GRAU","SOL"]},
+    {w:"PIRATA",p:2,f:["NAVIO","TESOURO","MAR","TAPA-OLHO","GANCHO"]},
+    {w:"SORVETE",p:2,f:["GELADO","DOCE","CASQUINHA","BOLA","SABOR"]},
+    {w:"TREM",p:2,f:["TRILHO","ESTAÇÃO","VAGÃO","LOCOMOTIVA","FERROVIA"]},
+    {w:"XADREZ",p:3,f:["JOGO","TABULEIRO","PEÇAS","REI","PRETO E BRANCO"]},
+    {w:"ZEBRA",p:2,f:["ANIMAL","LISTRAS","PRETO","BRANCO","CAVALO"]},
+    {w:"ALFACE",p:2,f:["SALADA","VERDE","FOLHA","COMER","HORTA"]},
+    {w:"BALEIA",p:2,f:["MAR","GRANDE","MAMÍFERO","OCEANO","ÁGUA"]},
+    {w:"CEBOLA",p:2,f:["CHORAR","TEMPERO","BRANCA","COZINHA","PICAR"]},
+    {w:"DIAMANTE",p:3,f:["JOIA","CARO","PEDRA","ANEL","BRILHO"]},
+    {w:"ELEFANTE",p:2,f:["TROMBA","GRANDE","ANIMAL","CINZA","MARFIM"]},
+    {w:"FOGUETE",p:2,f:["ESPAÇO","LUA","ASTRONAUTA","VOAR","SUBIR"]},
+    {w:"GELO",p:1,f:["FRIO","ÁGUA","CONGELADO","CUBO","DERRETER"]},
+    {w:"HARPA",p:3,f:["INSTRUMENTO","CORDAS","MÚSICA","ANJO","TOCAR"]},
+    {w:"IGREJA",p:2,f:["RELIGIÃO","DEUS","MISSA","REZA","SINO"]},
+    {w:"JANELA",p:1,f:["VIDRO","VER","CASA","ABRIR","PAREDE"]},
+    {w:"KATCHUP",p:2,f:["TOMATE","MOLHO","BATATA FRITA","VERMELHO","FRASCO"]},
+    {w:"LEÃO",p:1,f:["REI","SELVA","ANIMAL","JUBA","RUGIR"]},
+    {w:"MARTELO",p:2,f:["PREGO","FERRAMENTA","BATER","CONSTRUIR","MADEIRA"]},
+    {w:"NARIZ",p:1,f:["ROSTO","CHEIRO","RESPIRAR","OLFATO","ESPINHA"]},
+    {w:"ONÇA",p:2,f:["ANIMAL","FELINO","PINTAS","BRASIL","SELVA"]},
+    {w:"PAPAGAIO",p:2,f:["PÁSSARO","FALAR","VERDE","PENA","REPETIR"]},
+    {w:"QUEIJO",p:1,f:["LEITE","AMARELO","RATO","PIZZA","MINEIRO"]},
+    {w:"RATO",p:2,f:["ANIMAL","QUEIJO","PEQUENO","CAMUNDONGO","ROER"]},
+    {w:"SAPO",p:1,f:["VERDE","PULAR","LAGOA","ANFÍBIO","LÍNGUA"]},
+    {w:"TESOURA",p:1,f:["CORTAR","PAPEL","ESCOLA","CABELO","LÂMINA"]},
+    {w:"URSO",p:2,f:["ANIMAL","PELUDO","MEL","POLAR","GRANDE"]},
+    {w:"VACA",p:1,f:["LEITE","ANIMAL","FAZENDA","MU","PASTO"]},
+    {w:"WIFI",p:2,f:["INTERNET","SENHA","CONEXÃO","ROTEADOR","SEM FIO"]},
+    {w:"XÍCARA",p:1,f:["CAFÉ","BEBER","ASA","ALÇA","QUENTE"]},
+    {w:"YOUTUBE",p:2,f:["VÍDEO","INTERNET","ASSISTIR","CANAL","SITE"]},
+    {w:"ZOOLÓGICO",p:2,f:["ANIMAIS","JAULA","VISITAR","BICHOS","PASSEIO"]},
+    {w:"ABACAXI",p:1,f:["FRUTA","COROA","DOCE","AZEDO","DESCASCAR"]},
+    {w:"BATERIA",p:2,f:["TAMBOR","MÚSICA","INSTRUMENTO","CARGA","CELULAR"]},
+    {w:"COPO",p:1,f:["BEBER","ÁGUA","VIDRO","PLÁSTICO","LIQUIDO"]},
+    {w:"DINOSSAURO",p:2,f:["ANTIGO","EXTINTO","OSSOS","FÓSSIL","GRANDE"]},
+    {w:"ESCADA",p:1,f:["SUBIR","DEGRAUS","ALTO","DESCER","CASA"]},
+    {w:"FLOR",p:1,f:["JARDIM","PÉTALA","CHEIRO","PLANTA","ROSA"]},
+    {w:"GUITARRA",p:2,f:["ROCK","MÚSICA","CORDAS","ELÉTRICA","TOCAR"]},{w:"HELICÓPTERO",p:2,f:["VOAR","HÉLICE","CÉU","PILOTO","AEROPORTO"]},
+    {w:"ILHA",p:2,f:["MAR","TERRA","ÁGUA","PRAIA","COQUEIRO"]},
+    {w:"JORNAL",p:2,f:["NOTÍCIA","LER","PAPEL","INFORMAÇÃO","BANCA"]},
+    {w:"LÂMPADA",p:1,f:["LUZ","BRILHAR","TETO","IDEIA","ESCURO"]},
+    {w:"MARTELO",p:2,f:["PREGO","BATER","FERRAMENTA","OBRA","MADEIRA"]},
+    {w:"NUVEM",p:1,f:["CÉU","BRANCA","ALTO","CHUVA","ALGODÃO"]},
+    {w:"OURO",p:2,f:["JOIA","METAL","CARO","AMARELO","VALIOSO"]},
+    {w:"PALHAÇO",p:1,f:["CIRCO","NARIZ","RIR","FESTA","MAQUIAGEM"]},
+    {w:"QUADRO",p:2,f:["PAREDE","PINTURA","ARTE","MOLDURA","DESENHO"]},
+    {w:"RÁDIO",p:2,f:["MÚSICA","NOTÍCIA","OUVIR","ESTAÇÃO","PILHA"]},
+    {w:"SABONETE",p:1,f:["BANHO","LIMPAR","CHEIRO","LAVAR","ESPUMA"]},
+    {w:"TAPETE",p:1,f:["CHÃO","CASA","PÉS","SALA","PELUDO"]},
+    {w:"UVA",p:1,f:["FRUTA","VINHO","CACHO","ROXA","VERDE"]},
+    {w:"VELA",p:1,f:["FOGO","LUZ","BOLO","PARABÉNS","DERRETER"]},
+    {w:"XAMPU",p:2,f:["CABELO","BANHO","LAVAR","CABEÇA","ESPUMA"]},
+    {w:"IOGURTE",p:2,f:["LEITE","BEBER","MORANGO","GELADEIRA","LANCHE"]},
+    {w:"ZUMBI",p:2,f:["MORTO","VIVO","MEDO","TERROR","SÉRIE"]},
+    {w:"BALÃO",p:1,f:["FESTA","AR","VOAR","CÉU","ESTOURAR"]},
+    {w:"CARTEIRA",p:2,f:["DINHEIRO","DOCUMENTO","BOLSO","CARTÃO","COURO"]},
+    {w:"DADO",p:2,f:["JOGO","NÚMERO","SORTE","QUADRADO","JOGAR"]},
+    {w:"ESMALTE",p:2,f:["UNHA","PINTAR","MÃO","COR","MANICURE"]},
+    {w:"FACA",p:1,f:["CORTAR","COZINHA","AFIADA","GARFO","METAL"]},
+    {w:"GAVETA",p:2,f:["GUARDAR","ARMÁRIO","ABRIR","ROUPA","MÓVEL"]},
+    {w:"HÉLICE",p:3,f:["AVIÃO","VENTILADOR","GIRAR","MOTOR","VENTO"]},
+    {w:"IMÃ",p:3,f:["METAL","PUXAR","GELADEIRA","MAGNETISMO","FERRO"]},
+    {w:"JOELHO",p:2,f:["PERNA","CORPO","DOBRAR","ARTICULAÇÃO","OSSO"]},
+    {w:"LÁPIS",p:1,f:["ESCREVER","DESENHAR","GRAFITE","ESCOLA","PONTA"]},
+    {w:"MOCHILA",p:1,f:["ESCOLA","COSTAS","GUARDAR","VIAGEM","ALÇA"]},
+    {w:"NAVIO",p:1,f:["MAR","OCEANO","ÁGUA","BARCO","GRANDE"]},
+    {w:"OVO",p:1,f:["GALINHA","BRANCO","FRITAR","COZINHAR","GEMA"]},
+    {w:"PANELA",p:1,f:["COZINHA","FOGÃO","COMIDA","FUMAR","QUENTE"]},
+    {w:"QUEBRA-CABEÇA",p:3,f:["JOGO","PEÇAS","MONTAR","TABULEIRO","DIFÍCIL"]},
+    {w:"REFRIGERANTE",p:2,f:["BEBER","GÁS","COLA","LATINHA","GELADO"]},
+    {w:"SINO",p:2,f:["IGREJA","BARULHO","TOCAR","METAL","NATAL"]},
+    {w:"TOALHA",p:1,f:["BANHO","SECAR","MOLHADO","ROSTO","PRAIA"]},
+    {w:"URUTU",p:3,f:["COBRA","ANIMAL","VENENO","PICADA","RÉPTIL"]},
+    {w:"VIOLINO",p:3,f:["MÚSICA","INSTRUMENTO","CORDAS","ARCO","CLÁSSICO"]},
+    {w:"XALE",p:3,f:["ROUPA","FRIO","OMBROS","MULHER","TECIDO"]},
+    {w:"YOGA",p:2,f:["EXERCÍCIO","MEDITAR","POSTURA","CORPO","SAÚDE"]},
+    {w:"ZABUMBA",p:3,f:["FORRÓ","MÚSICA","INSTRUMENTO","BATERIA","NORDESTE"]},
+    {w:"AMENDOIM",p:2,f:["COMER","PETISCO","SALGADO","CASCA","PAÇOCA"]},
+    {w:"BOTÃO",p:2,f:["CAMISA","ROUPA","FECHAR","CASA","PLÁSTICO"]},
+    {w:"COFRE",p:2,f:["DINHEIRO","GUARDAR","BANCO","SEGURO","METAL"]},
+    {w:"DOMINÓ",p:2,f:["JOGO","PEÇAS","PONTOS","MESA","BRANCO"]},
+    {w:"ESCORPIÃO",p:2,f:["ANIMAL","VENENO","PICADA","CAUDA","DESERTO"]},
+    {w:"FIO",p:2,f:["ELÉTRICO","LUZ","TOMADA","CABO","ENERGIA"]},
+    {w:"GIBI",p:2,f:["LER","HISTÓRIA","QUADRINHOS","REVISTA","CRIANÇA"]},
+    {w:"HIPOPÓTAMO",p:2,f:["ANIMAL","GRANDE","ÁGUA","ÁFRICA","BOCA"]},
+    {w:"INJEÇÃO",p:2,f:["AGULHA","REMÉDIO","MÉDICO","DOR","VACINA"]},
+    {w:"JACARÉ",p:1,f:["ANIMAL","BOCA","VERDE","RIO","RÉPTIL"]},
+    {w:"LIVRARIA",p:2,f:["LIVRO","COMPRAR","LER","LOJA","PRATELEIRA"]},
+    {w:"MORANGO",p:1,f:["FRUTA","VERMELHO","DOCE","BOLO","PEQUENO"]},
+    {w:"NINHO",p:2,f:["PÁSSARO","OVO","ÁRVORE","CASA","FILHOTE"]},
+    {w:"ÔNIBUS",p:1,f:["VIAGEM","PASSAGEIRO","ESTRADA","RODOVIÁRIA","VEÍCULO"]},
+    {w:"PENTE",p:2,f:["CABELO","PENTEAR","ESCOVA","CABEÇA","DIENTES"]},
+    {w:"QUIABO",p:3,f:["COMIDA","VERDE","BABA","VEGETAL","COZINHA"]},
+    {w:"RÉGUA",p:2,f:["ESCOLA","MEDIR","LINHA","TAMANHO","NÚMEROS"]},
+    {w:"SABRE",p:3,f:["ESPADA","ARMA","GUERRA","METAL","LUTAR"]},
+    {w:"TOMATE",p:1,f:["VERMELHO","SALADA","FRUTA","MOLHO","COZINHA"]},
+    {w:"URUTU",p:3,f:["COBRA","VENENO","ANIMAL","PICADA","RÉPTIL"]},
+    {w:"VAGALUME",p:2,f:["INSETO","LUZ","NOITE","BRILHAR","VOAR"]},
+    {w:"WEB-CAM",p:3,f:["CÂMERA","VÍDEO","INTERNET","COMPUTADOR","CHAMADA"]},
+    {w:"XERIFE",p:2,f:["POLÍCIA","ESTRELA","ARMA","OESTE","LEI"]},
+    {w:"YAKISOBA",p:3,f:["COMIDA","CHINESA","MACARRÃO","CARNE","LEGUMES"]},
+    {w:"ZANGÃO",p:3,f:["ABELHA","MEL","INSETO","COLMEIA","PICAR"]},
+    {w:"ACADEMIA",p:2,f:["TREINO","PESO","EXERCÍCIO","MUSCULAÇÃO","SUOR"]},
+    {w:"BOMBETA",p:3,f:["BONÉ","CABEÇA","ROUPA","ACESSÓRIO","ABA"]},
+    {w:"CATAVENTO",p:3,f:["VENTO","GIRAR","BRINQUEDO","COLORIDO","AR"]}
+];
+let players = [], deck = [], cur = 0, idx = 0, currentCard = null, time = 60, prep = 5, timeInt, prepInt, isMuted = false, manualEdit = false;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+function playSound(freq, type = 'sine', dur = 0.1) {
+    if(isMuted || !audioCtx) return;
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = type; o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+}
+function toggleAudio() { initAudio(); isMuted = !isMuted; document.getElementById("sound-btn").innerText = isMuted ? "🔇" : "🔊"; }
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
+function openModal(id){ document.getElementById(id).style.display = "flex"; }
+function closeModal(id){ document.getElementById(id).style.display = "none"; }
+function addPlayer(){
+    const inp = document.getElementById("in-name");
+    if(!inp.value.trim()) return;
+    initAudio();
+    players.push({name: inp.value.toUpperCase(), score: 0, skips: 5});
+    renderSetupPlayers(); inp.value = "";
+    playSound(880, 'sine', 0.2);
+}
+function removePlayer(i){ players.splice(i,1); renderSetupPlayers(); playSound(150, 'square', 0.1); }
+function renderSetupPlayers(){
+    document.getElementById("player-list").innerHTML = players.map((p,i)=>`
+        <div class="player-row">
+            <span style="flex:1; text-align:left; font-weight:700">${p.name}</span>
+            <button class="btn-remove" onclick="removePlayer(${i})">Remover</button>
+        </div>`).join("");
+}
+function startGame(){
+    if(players.length < 2) { openModal('modal-alert'); return; }
+    initAudio();
+    playSound(400); setTimeout(()=>playSound(600), 100); setTimeout(()=>playSound(800), 200); 
+    deck = [...cards].sort(()=>Math.random()-0.5);
+    show("scr-lobby"); updateLobby();
+}
+function updateLobby(){
+    document.getElementById("lb-name").innerText = players[cur].name;
+    document.getElementById("lb-score").innerText = players[cur].score;
+}
+function revealCard(){
+    currentCard = deck[idx % deck.length];
+    playSound(600, 'sine', 0.1); 
+    const cardEl = document.getElementById("cardUI");
+    cardEl.classList.remove("flip-anim");
+    void cardEl.offsetWidth; 
+    cardEl.classList.add("flip-anim");
+    document.getElementById("cardWord").innerText = currentCard.w;
+    document.getElementById("cardPts").innerText = currentCard.p + " PTS";
+    document.getElementById("cardForbidden").innerHTML = currentCard.f.map(f=>`<li>🚫 ${f}</li>`).join("");
+    document.getElementById("btnSkip").innerText = `🔄 TROCAR (${players[cur].skips})`;
+    document.getElementById("btnSkip").style.display = players[cur].skips > 0 ? "block" : "none";
+    time = 60; updateTimerUI();
+    show("scr-game");
+    const btnReady = document.getElementById("btnReady");
+    btnReady.style.display = "block"; 
+    document.getElementById("btnEndEarly").style.display = "none";
+    prep = 5; 
+    btnReady.innerText = `ESTOU PRONTO (${prep})`;
+    clearInterval(prepInt);
+    prepInt = setInterval(()=>{
+        prep--;
+        if(prep > 0) btnReady.innerText = `ESTOU PRONTO (${prep})`;
+        else { btnReady.innerText = "ESTOU PRONTO"; clearInterval(prepInt); }
+    }, 1000);
+}
+function skipCard() { if (players[cur].skips > 0) { players[cur].skips--; playSound(150); idx++; revealCard(); } }
+function startRound(){
+    playSound(660); clearInterval(prepInt);
+    document.getElementById("btnReady").style.display = "none";
+    document.getElementById("btnSkip").style.display = "none";
+    document.getElementById("btnEndEarly").style.display = "block";
+    timeInt = setInterval(()=>{
+        time--; updateTimerUI();
+        if(time <= 5 && time > 0) playSound(880, 'sine', 0.05);
+        if(time <= 0) { playSound(100, 'square', 0.5); confirmEnd(); }
+    }, 1000);
+}
+function updateTimerUI(){
+    const text = document.getElementById("timerText");
+    const circle = document.getElementById("timerCircle");
+    text.innerText = time;
+    circle.style.strokeDashoffset = 226 - (time / 60) * 226;
+    if(time > 30) circle.style.stroke = "var(--success)";
+    else if (time > 10) circle.style.stroke = "var(--accent)";
+    else circle.style.stroke = "var(--danger)";
+}
+function confirmEnd(){
+    clearInterval(timeInt);
+    const winBox = document.getElementById("winnerButtons");
+    winBox.innerHTML = players.map((p,i)=> i === cur ? '' : `<button class="btn-accent" onclick="givePoints(${i})">✅ ${p.name}</button>`).join("");
+    show("scr-decision");
+}
+function givePoints(pIdx){ players[pIdx].score += currentCard.p; players[cur].score += 1; nextTurn(); }
+function noOneGotIt(){ nextTurn(); }
+function nextTurn(){ playSound(220); idx++; cur = (cur + 1) % players.length; updateLobby(); show("scr-lobby"); }
+function openScore(){ manualEdit = false; renderScoreBody(); openModal("modal-score"); }
+function renderScoreBody(){
+  document.getElementById("score-body").innerHTML = players.map((p,i)=>`
+    <div class="score-row">
+      <b style="flex:1; text-align:left">${p.name}</b>
+      <div style="display:flex; align-items:center; gap:10px">
+        ${manualEdit ? `<button class="adj-btn" onclick="adjP(${i},-1)">-</button>` : ''}
+        <span style="color:var(--accent); font-weight:900; min-width:20px">${p.score}</span>
+        ${manualEdit ? `<button class="adj-btn" onclick="adjP(${i},1)">+</button>` : ''}
+      </div>
+    </div>`).join("");
+}
+function adjP(i,v){ players[i].score = Math.max(0, players[i].score + v); renderScoreBody(); updateLobby(); }
+</script>
+</body>
+</html>

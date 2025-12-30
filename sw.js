@@ -1,19 +1,18 @@
-const CACHE_NAME = 'jea-hub-v5'; // Versão incrementada
+const CACHE_NAME = 'jea-hub-v6';
 const assets = [
-  './',
-  './index.html',
-  './manifest.json',
-  './sw.js',
-  './icon-192.png',
-  './icon-512.png',
-  './letras.html',
-  './conhece.html',
-  './imperium.html',
-  './nem-pensar.html'
+  'index.html',
+  'manifest.json',
+  'sw.js',
+  'icon-192.png',
+  'icon-512.png',
+  'letras.html',
+  'conhece.html',
+  'imperium.html',
+  'nem-pensar.html'
 ];
 
-// Instalação: Salva os arquivos no cache
 self.addEventListener('install', (e) => {
+  self.skipWaiting(); // Força a ativação imediata
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(assets);
@@ -21,7 +20,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Ativação: Limpa caches antigos (v4, v3...)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -32,7 +30,6 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch: Serve os arquivos do cache quando estiver offline
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((res) => {

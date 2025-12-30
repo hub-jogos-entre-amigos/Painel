@@ -19,12 +19,26 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; height: 100dvh; overflow: hidden; display: flex; justify-content: center; }
 
+/* BOTÃO DE SOM - REDONDO E VISÍVEL DESDE O INÍCIO */
+#sound-btn { 
+    position: fixed; top: 15px; left: 15px; 
+    z-index: 10001; 
+    width: 44px; height: 44px; 
+    border-radius: 50%; /* REDONDO */
+    background: var(--glass); 
+    border: 1px solid rgba(255,255,255,0.2); 
+    color: #fff; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 1.2rem; cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+
 /* CONTAINERS PRINCIPAIS */
-#container-vinheta { position: fixed; inset: 0; z-index: 9999; display: flex; justify-content: center; align-items: center; background: var(--bg); transition: opacity 0.8s ease; }
+#container-vinheta { position: fixed; inset: 0; z-index: 9999; display: flex; justify-content: center; align-items: center; background: var(--bg); transition: opacity 0.8s ease; cursor: pointer; }
 #container-jogo { display: none; width: 100%; max-width: 480px; height: 100%; position: relative; flex-direction: column; padding: 10px; }
 #container-jogo.ativo { display: flex; }
 
-/* CSS DA VINHETA */
+/* CSS DA VINHETA (ORIGINAL) */
 #scr-teaser {
     width: 100%; max-width: 500px; height: 100%;
     background: radial-gradient(circle at center, #2e2800 0%, #030207 100%);
@@ -43,8 +57,8 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
 
-/* CSS DO JOGO (Mantido Original) */
-.nav-top { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 1000; display: flex; justify-content: space-between; }
+/* CSS DO JOGO (PRESERVADO) */
+.nav-top { position: absolute; top: 15px; right: 15px; z-index: 1000; display: flex; gap: 10px; }
 .btn-nav { background: var(--glass); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 .screen { display: none; flex-direction: column; width: 100%; height: 100%; padding: 10px; text-align: center; position: relative; }
 .screen.active { display: flex; }
@@ -78,6 +92,8 @@ button:active { transform: scale(0.96); }
 </head>
 <body>
 
+<div id="sound-btn" onclick="toggleAudio()">🔊</div>
+
 <div id="container-vinheta" onclick="iniciarTeaser()">
     <div id="scr-teaser">
         <div class="tap-hint" id="hint">Toque para desafiar o óbvio</div>
@@ -93,7 +109,6 @@ button:active { transform: scale(0.96); }
 
 <div id="container-jogo">
   <div class="nav-top">
-    <button class="btn-nav" id="sound-btn" onclick="toggleAudio()">🔊</button>
     <button class="btn-nav" onclick="openModal('modal-menu')">☰</button>
   </div>
 
@@ -181,7 +196,7 @@ button:active { transform: scale(0.96); }
 </div>
 
 <script>
-// --- LÓGICA DE TRANSIÇÃO (VINHETA -> JOGO) ---
+// --- LÓGICA DE TRANSIÇÃO (PRESERVADA) ---
 let audioCtx = null;
 let teaserIniciado = false;
 
@@ -192,11 +207,9 @@ function iniciarTeaser() {
     document.getElementById('hint').style.display = 'none';
     document.getElementById('content').classList.add('active');
 
-    // Inicializa AudioContext (será compartilhado)
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-
-    // SONS DA VINHETA (ORIGINAL)
+    
+    // Sons da vinheta
     for(let i=0; i<8; i++) {
         const timeOffset = (i * 0.3) * (1 - i*0.04); 
         playS(i % 2 === 0 ? 900 : 700, 'square', 0.05, timeOffset, 0.05);
@@ -217,7 +230,6 @@ function iniciarTeaser() {
     setTimeout(() => { document.getElementById('t-phrase').classList.add('show'); }, 3000);
     [4.8, 4.95, 5.1].forEach((t, i) => { playS(1100 + (i*300), 'sine', 0.5, t, 0.08); });
 
-    // TRANSIÇÃO PARA O JOGO (Após os acordes finais da vinheta)
     setTimeout(() => {
         const v = document.getElementById('container-vinheta');
         v.style.opacity = '0';
@@ -228,7 +240,6 @@ function iniciarTeaser() {
     }, 5500);
 }
 
-// Auxiliar de som da vinheta
 function playS(f, t='sine', d=0.1, delay=0, vol=0.1) {
     const time = audioCtx.currentTime + delay;
     const o = audioCtx.createOscillator();
@@ -240,7 +251,7 @@ function playS(f, t='sine', d=0.1, delay=0, vol=0.1) {
     o.start(time); o.stop(time + d);
 }
 
-// --- TODO O CÓDIGO DO JOGO (COPIADO EXATAMENTE IGUAL) ---
+// --- LÓGICA DO JOGO (CARTAS ORIGINAIS) ---
 const cards = [
     {w:"BANANA",p:1,f:["FRUTA","AMARELA","CASCA","MACACO","VITAMINA"]},
     {w:"GATO",p:1,f:["PET","ANIMAL","MIAU","FELINO","LEITE"]},
@@ -393,7 +404,9 @@ const cards = [
     {w:"CATAVENTO",p:3,f:["VENTO","GIRAR","BRINQUEDO","COLORIDO","AR"]}
 ];
 let players = [], deck = [], cur = 0, idx = 0, currentCard = null, time = 60, prep = 5, timeInt, prepInt, isMuted = false, manualEdit = false;
+
 function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
 function playSound(freq, type = 'sine', dur = 0.1) {
     if(isMuted || !audioCtx) return;
     const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
@@ -403,10 +416,13 @@ function playSound(freq, type = 'sine', dur = 0.1) {
     g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
     o.start(); o.stop(audioCtx.currentTime + dur);
 }
+
 function toggleAudio() { initAudio(); isMuted = !isMuted; document.getElementById("sound-btn").innerText = isMuted ? "🔇" : "🔊"; }
+
 function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
 function openModal(id){ document.getElementById(id).style.display = "flex"; }
 function closeModal(id){ document.getElementById(id).style.display = "none"; }
+
 function addPlayer(){
     const inp = document.getElementById("in-name");
     if(!inp.value.trim()) return;
@@ -415,7 +431,9 @@ function addPlayer(){
     renderSetupPlayers(); inp.value = "";
     playSound(880, 'sine', 0.2);
 }
+
 function removePlayer(i){ players.splice(i,1); renderSetupPlayers(); playSound(150, 'square', 0.1); }
+
 function renderSetupPlayers(){
     document.getElementById("player-list").innerHTML = players.map((p,i)=>`
         <div class="player-row">
@@ -423,6 +441,7 @@ function renderSetupPlayers(){
             <button class="btn-remove" onclick="removePlayer(${i})">Remover</button>
         </div>`).join("");
 }
+
 function startGame(){
     if(players.length < 2) { openModal('modal-alert'); return; }
     initAudio();
@@ -430,10 +449,12 @@ function startGame(){
     deck = [...cards].sort(()=>Math.random()-0.5);
     show("scr-lobby"); updateLobby();
 }
+
 function updateLobby(){
     document.getElementById("lb-name").innerText = players[cur].name;
     document.getElementById("lb-score").innerText = players[cur].score;
 }
+
 function revealCard(){
     currentCard = deck[idx % deck.length];
     playSound(600, 'sine', 0.1); 
@@ -460,7 +481,9 @@ function revealCard(){
         else { btnReady.innerText = "ESTOU PRONTO"; clearInterval(prepInt); }
     }, 1000);
 }
+
 function skipCard() { if (players[cur].skips > 0) { players[cur].skips--; playSound(150); idx++; revealCard(); } }
+
 function startRound(){
     playSound(660); clearInterval(prepInt);
     document.getElementById("btnReady").style.display = "none";
@@ -472,6 +495,7 @@ function startRound(){
         if(time <= 0) { playSound(100, 'square', 0.5); confirmEnd(); }
     }, 1000);
 }
+
 function updateTimerUI(){
     const text = document.getElementById("timerText");
     const circle = document.getElementById("timerCircle");
@@ -481,16 +505,20 @@ function updateTimerUI(){
     else if (time > 10) circle.style.stroke = "var(--accent)";
     else circle.style.stroke = "var(--danger)";
 }
+
 function confirmEnd(){
     clearInterval(timeInt);
     const winBox = document.getElementById("winnerButtons");
     winBox.innerHTML = players.map((p,i)=> i === cur ? '' : `<button class="btn-accent" onclick="givePoints(${i})">✅ ${p.name}</button>`).join("");
     show("scr-decision");
 }
+
 function givePoints(pIdx){ players[pIdx].score += currentCard.p; players[cur].score += 1; nextTurn(); }
 function noOneGotIt(){ nextTurn(); }
 function nextTurn(){ playSound(220); idx++; cur = (cur + 1) % players.length; updateLobby(); show("scr-lobby"); }
+
 function openScore(){ manualEdit = false; renderScoreBody(); openModal("modal-score"); }
+
 function renderScoreBody(){
   document.getElementById("score-body").innerHTML = players.map((p,i)=>`
     <div class="score-row">
@@ -502,6 +530,7 @@ function renderScoreBody(){
       </div>
     </div>`).join("");
 }
+
 function adjP(i,v){ players[i].score = Math.max(0, players[i].score + v); renderScoreBody(); updateLobby(); }
 </script>
 </body>

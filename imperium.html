@@ -145,6 +145,40 @@ button { width: 100%; padding: 16px; border-radius: 20px; border: none; font-siz
         <button id="btn-entendi" class="btn-accent" style="visibility:hidden" onclick="nextPlayer()">ENTENDI</button>
     </div>
 
+    <div id="scr-question-intro" class="screen">
+        <p style="opacity:0.5">INICIANDO CICLO <span id="cur-cycle-num">1</span></p>
+        <h1 style="color: var(--rei); font-size: 2rem;">ORDEM DOS INTERROGATÓRIOS</h1>
+        <p style="font-size: 0.8rem; opacity: 0.7; margin: 20px 0;">Respostas curtas. Proibido falar a palavra, sinônimos ou rimar.</p>
+        <button class="btn-primary" onclick="startQuestionTurn()">INICIAR TURNOS</button>
+    </div>
+
+    <div id="scr-question-pass" class="screen">
+        <p style="opacity:0.5">VEZ DE PERGUNTAR</p>
+        <h1 id="q-pass-name" style="font-size: 2.5rem; color: var(--rei);">---</h1>
+        <button class="btn-primary" onclick="showQuestionSelect()">ESTOU COM O APARELHO</button>
+    </div>
+
+    <div id="scr-question-select" class="screen">
+        <p style="opacity:0.5">PERGUNTADOR: <span id="q-active-name" style="color:var(--rei)">---</span></p>
+        <h2 style="font-size: 1.2rem; margin-bottom: 20px;">ESCOLHA QUEM IRÁ RESPONDER:</h2>
+        <div id="q-select-options" class="vote-grid" style="flex: 1; overflow-y: auto;"></div>
+    </div>
+
+    <div id="scr-question-action" class="screen">
+        <p style="opacity:0.5">PERGUNTA EM VOZ ALTA</p>
+        <div class="voter-tag" id="q-target-tag">PARA: ---</div>
+        <div style="font-size: 4rem; margin: 20px 0;">💬</div>
+        <p style="font-family: sans-serif; opacity: 0.8; padding: 0 20px;">Após a resposta ser dada, passe para o próximo turno.</p>
+        <button class="btn-accent" onclick="nextQuestionTurn()">PRÓXIMO TURNO</button>
+    </div>
+
+    <div id="scr-dramatic-end" class="screen">
+        <div style="font-size: 6rem; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--assassino));">⚖️</div>
+        <h1 style="color: var(--rei); font-size: 1.5rem;">FIM DOS INTERROGATÓRIOS</h1>
+        <p style="opacity: 0.7; margin-bottom: 30px;">As máscaras estão prestes a cair. Chegou a hora da verdade.</p>
+        <button class="btn-danger" onclick="startDebate()">IR PARA VOTAÇÃO</button>
+    </div>
+
     <div id="scr-debate" class="screen">
         <p style="opacity:0.5">LÍDER DO TURNO: <span id="st-name" style="color:var(--rei)">---</span></p>
         <div id="timer" style="font-size: 5rem; font-weight: 900; margin: 10px 0;">01:00</div>
@@ -248,7 +282,6 @@ function iniciarTeaser() {
         playS(440, 'sine', 1.0, 0, 0.05); 
     }, 5500);
 
-    // Transição para o jogo após o fim da vinheta
     setTimeout(() => {
         document.getElementById('scr-teaser').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
@@ -269,7 +302,8 @@ function playS(f, t='sine', d=0.1, delay=0, vol=0.1) {
 // --- LÓGICA DO JOGO (INTEGRAL) ---
 let players = [], roles = [], scores = {}, cur = 0, currentVoter = 0, votes = {};
 let audioCtx = null, isMuted = false, timerInt;
-const words = [{r:"PIZZA", c:"PASTEL"}, {r:"LUA", c:"SOL"}, {r:"AVIÃO", c:"CARRO"}, {r:"FOGO", c:"GELO"}];
+let cycleCount = 0, totalCycles = 2, cycleOrder = [], turnIndex = 0;
+const words = [{r:"PIZZA", c:"PASTEL"}, {r:"LUA", c:"SOL"}, {r:"AVIÃO", c:"CARRO"}, {r:"FOGO", c:"GELO"}, {r:"REI", c:"RAINHA"}, {r:"MAR", c:"RIO"}, {r:"OURO", c:"PRATA"}, {r:"LIVRO", c:"CADERNO"}];
 
 function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
 function toggleAudio() { initAudio(); isMuted = !isMuted; document.getElementById('sound-toggle').innerText = isMuted ? "🔇" : "🔊"; }
@@ -314,7 +348,10 @@ function prepareRound() {
     roles = [{n:"REI", w:theme.r, c:"var(--rei)"}, {n:"ASSASSINO", w:"???", c:"var(--assassino)"}];
     for(let i=2; i<players.length; i++) roles.push({n:"CONSPIRADOR", w:theme.c, c:"var(--conspirador)"});
     roles.sort(() => Math.random() - 0.5);
-    cur = 0; showPass();
+    cur = 0; 
+    totalCycles = players.length >= 9 ? 3 : 2;
+    cycleCount = 0;
+    showPass();
 }
 
 function showPass() {
@@ -344,8 +381,82 @@ function flipCard() {
 function nextPlayer() {
     cur++;
     if(cur < players.length) showPass();
-    else startDebate();
+    else initCycle();
 }
+
+// --- LOGICA DE CICLOS DE PERGUNTAS ---
+
+function initCycle() {
+    cycleCount++;
+    if(cycleCount > totalCycles) {
+        showDramaticEnd();
+        return;
+    }
+    // Embaralha ordem dos jogadores para o ciclo
+    cycleOrder = [...players].sort(() => Math.random() - 0.5);
+    turnIndex = 0;
+    document.getElementById('cur-cycle-num').innerText = cycleCount;
+    showScreen('scr-question-intro');
+    playArp([300, 400, 500]);
+}
+
+function startQuestionTurn() {
+    const activePlayer = cycleOrder[turnIndex];
+    document.getElementById('q-pass-name').innerText = activePlayer;
+    showScreen('scr-question-pass');
+}
+
+function showQuestionSelect() {
+    const activePlayer = cycleOrder[turnIndex];
+    document.getElementById('q-active-name').innerText = activePlayer;
+    const container = document.getElementById('q-select-options');
+    container.innerHTML = "";
+    
+    players.forEach(p => {
+        if(p !== activePlayer) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-outline';
+            btn.innerText = p;
+            btn.onclick = () => selectTarget(p);
+            container.appendChild(btn);
+        }
+    });
+    showScreen('scr-question-select');
+    playSfx(600, 0.1);
+}
+
+function selectTarget(targetName) {
+    document.getElementById('q-target-tag').innerText = `PARA: ${targetName}`;
+    showScreen('scr-question-action');
+    playArp([600, 800]);
+}
+
+function nextQuestionTurn() {
+    turnIndex++;
+    if(turnIndex < cycleOrder.length) {
+        startQuestionTurn();
+    } else {
+        initCycle();
+    }
+}
+
+function showDramaticEnd() {
+    showScreen('scr-dramatic-end');
+    // Som dramático de encerramento
+    if(!isMuted && audioCtx) {
+        const t = audioCtx.currentTime;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(100, t);
+        o.frequency.exponentialRampToValueAtTime(40, t + 2);
+        g.gain.setValueAtTime(0.2, t);
+        g.gain.linearRampToValueAtTime(0, t + 2);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(t + 2);
+    }
+}
+// --- VOLTA PARA LOGICA ORIGINAL ---
 
 function startDebate() {
     document.getElementById('st-name').innerText = players[Math.floor(Math.random()*players.length)];

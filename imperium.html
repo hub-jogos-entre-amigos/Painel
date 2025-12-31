@@ -303,7 +303,27 @@ function playS(f, t='sine', d=0.1, delay=0, vol=0.1) {
 let players = [], roles = [], scores = {}, cur = 0, currentVoter = 0, votes = {};
 let audioCtx = null, isMuted = false, timerInt;
 let cycleCount = 0, totalCycles = 2, cycleOrder = [], turnIndex = 0;
-const words = [{r:"PIZZA", c:"PASTEL"}, {r:"LUA", c:"SOL"}, {r:"AVIÃO", c:"CARRO"}, {r:"FOGO", c:"GELO"}, {r:"REI", c:"RAINHA"}, {r:"MAR", c:"RIO"}, {r:"OURO", c:"PRATA"}, {r:"LIVRO", c:"CADERNO"}];
+const words = [
+    {r:"PIZZA", c:"PASTEL"}, {r:"LUA", c:"SOL"}, {r:"AVIÃO", c:"CARRO"}, {r:"FOGO", c:"GELO"}, {r:"REI", c:"RAINHA"}, {r:"MAR", c:"RIO"}, {r:"OURO", c:"PRATA"}, {r:"LIVRO", c:"CADERNO"},
+    {r:"CAFÉ", c:"CHÁ"}, {r:"GATO", c:"CACHORRO"}, {r:"BANANA", c:"MAÇÃ"}, {r:"CÉU", c:"MAR"}, {r:"TREM", c:"ÔNIBUS"}, {r:"CHAVE", c:"CADEADO"}, {r:"SAPATO", c:"CHINELO"}, {r:"MESA", c:"CADEIRA"},
+    {r:"FUTEBOL", c:"BASQUETE"}, {r:"GUITARRA", c:"PIANO"}, {r:"ESTRELA", c:"PLANETA"}, {r:"FACA", c:"GARFO"}, {r:"ÓCULOS", c:"LENTE"}, {r:"RELÓGIO", c:"PULSEIRA"}, {r:"PORTA", c:"JANELA"}, {r:"COPO", c:"XÍCARA"},
+    {r:"NARIZ", c:"BOCA"}, {r:"MÃO", c:"PÉ"}, {r:"CALÇA", c:"BERMUDA"}, {r:"CAMISA", c:"CASACO"}, {r:"CHUVA", c:"NEVE"}, {r:"VENTO", c:"TEMPESTADE"}, {r:"ILHA", c:"MONTANHA"}, {r:"FLORESTA", c:"DESERTO"},
+    {r:"MÉDICO", c:"ENFERMEIRO"}, {r:"POLICIAL", c:"BOMBEIRO"}, {r:"PROFESSOR", c:"ALUNO"}, {r:"PADARIA", c:"AÇOUGUE"}, {r:"BANCO", c:"LOTÉRICA"}, {r:"CINEMA", c:"TEATRO"}, {r:"ESTÁDIO", c:"GINÁSIO"}, {r:"IGREJA", c:"TEMPLO"},
+    {r:"BRASIL", c:"PORTUGAL"}, {r:"FRANÇA", c:"ITÁLIA"}, {r:"JAPÃO", c:"CHINA"}, {r:"AVIÃO", c:"HELICÓPTERO"}, {r:"NAVIO", c:"SUBMARINO"}, {r:"BICICLETA", c:"MOTO"}, {r:"SKATE", c:"PATINS"}, {r:"FOGUETE", c:"SATÉLITE"},
+    {r:"LEÃO", c:"TIGRE"}, {r:"Tubarão", c:"Baleia"}, {r:"Águia", c:"Falcão"}, {r:"Cobra", c:"Lagarto"}, {r:"Elefante", c:"Girafa"}, {r:"Zebra", c:"Cavalo"}, {r:"Macaco", c:"Gorila"}, {r:"Urso", c:"Lobo"},
+    {r:"BOLO", c:"TORTA"}, {r:"SORVETE", c:"PICOLÉ"}, {r:"HAMBÚRGUER", c:"Cachorro-Quente"}, {r:"CERVEJA", c:"VINHO"}, {r:"SUCO", c:"REFRIGERANTE"}, {r:"ARROZ", c:"FEIJÃO"}, {r:"CARNE", c:"PEIXE"}, {r:"OVO", c:"QUEIJO"},
+    {r:"COMPUTADOR", c:"CELULAR"}, {r:"TELEVISÃO", c:"RÁDIO"}, {r:"INTERNET", c:"WI-FI"}, {r:"MOUSE", c:"TECLADO"}, {r:"CÂMERA", c:"FILMADORA"}, {r:"LÂMPADA", c:"VELA"}, {r:"BATERIA", c:"PILHA"}, {r:"FONE", c:"CAIXA DE SOM"},
+    {r:"CINZA", c:"PRETO"}, {r:"BRANCO", c:"BEGE"}, {r:"AZUL", c:"VERDE"}, {r:"VERMELHO", c:"ROSA"}, {r:"AMARELO", c:"LARANJA"}, {r:"ROXO", c:"LILÁS"}, {r:"DOURADO", c:"PRATEADO"}, {r:"MARROM", c:"BEGE"},
+    {r:"JANEIRO", c:"DEZEMBRO"}, {r:"DOMINGO", c:"SÁBADO"}, {r:"VERÃO", c:"INVERNO"}, {r:"OUTONO", c:"PRIMAVERA"}, {r:"MANHÃ", c:"NOITE"}, {r:"TARDE", c:"MADRUGADA"}, {r:"ONTEM", c:"AMANHÃ"}, {r:"HOJE", c:"AGORA"},
+    {r:"DENTE", c:"LÍNGUA"}, {r:"OLHO", c:"ORELHA"}, {r:"CABELO", c:"BARBA"}, {r:"CORAÇÃO", c:"PULMÃO"}, {r:"SANGUE", c:"SUOR"}, {r:"SONO", c:"SONHO"}, {r:"RISO", c:"CHORO"}, {r:"GRITO", c:"SUSSURRO"},
+    {r:"CASA", c:"APARTAMENTO"}, {r:"QUARTO", c:"SALA"}, {r:"COZINHA", c:"BANHEIRO"}, {r:"GARAGEM", c:"QUINTAL"}, {r:"TELHADO", c:"PAREDE"}, {r:"ESCADA", c:"ELEVADOR"}, {r:"TAPETE", c:"CORTINA"}, {r:"ESPELHO", c:"QUADRO"},
+    {r:"ESCOLA", c:"FACULDADE"}, {r:"TRABALHO", c:"ESTUDO"}, {r:"PROVA", c:"TRABALHO"}, {r:"CANETA", c:"LÁPIS"}, {r:"BORRACHA", c:"RÉGUA"}, {r:"MOCHILA", c:"ESTOJO"}, {r:"PAPEL", c:"CARTOLINA"}, {r:"COLA", c:"TESOURA"},
+    {r:"MÚSICA", c:"DANÇA"}, {r:"FILME", c:"SÉRIE"}, {r:"DESENHO", c:"NOVELA"}, {r:"RÁDIO", c:"PODCAST"}, {r:"LIVRARIA", c:"BIBLIOTECA"}, {r:"POEMA", c:"CONTO"}, {r:"PINTURA", c:"ESCULTURA"}, {r:"FOTO", c:"VÍDEO"},
+    {r:"REFRIGERADOR", c:"FOGÃO"}, {r:"MICRO-ONDAS", c:"FORNO"}, {r:"VASSOURA", c:"RODO"}, {r:"BALDE", c:"BACIA"}, {r:"SABÃO", c:"AMACIANTE"}, {r:"ESPONJA", c:"PALHA DE AÇO"}, {r:"TOALHA", c:"LENÇOL"}, {r:"TRAVESSEIRO", c:"COBERTOR"},
+    {r:"MERCADO", c:"FEIRA"}, {r:"SHOPPING", c:"LOJA"}, {r:"FARMÁCIA", c:"HOSPITAL"}, {r:"PARQUE", c:"PRAÇA"}, {r:"ZOOLÓGICO", c:"AQUÁRIO"}, {r:"CIRCO", c:"PARQUE DE DIVERSÕES"}, {r:"MUSEU", c:"GALERIA"}, {r:"PONTE", c:"TÚNEL"},
+    {r:"MOEDA", c:"NOTA"}, {r:"CARTEIRA", c:"BOLSA"}, {r:"ANEL", c:"BRINCO"}, {r:"COLAR", c:"PULSEIRA"}, {r:"PERFUME", c:"BATOM"}, {r:"ESCOVA", c:"PENTE"}, {r:"SABONETE", c:"SHAMPOO"}, {r:"DENTIFRÍCIO", c:"FIO DENTAL"},
+    {r:"BOTA", c:"TÊNIS"}, {r:"MEIA", c:"CUECA"}, {r:"GRAVATA", c:"CINTO"}, {r:"LUVA", c:"TOUCA"}, {r:"GUARDA-CHUVA", c:"CAPA DE CHUVA"}, {r:"MALETA", c:"MOCHILA"}, {r:"FERRO", c:"AÇO"}, {r:"MADEIRA", c:"PEDRA"}
+];
 
 function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
 function toggleAudio() { initAudio(); isMuted = !isMuted; document.getElementById('sound-toggle').innerText = isMuted ? "🔇" : "🔊"; }

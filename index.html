@@ -80,11 +80,17 @@ body {
 
 .btn-play { width: 100%; padding: 20px; border-radius: 25px; border: none; font-size: 1.1rem; font-weight: 900; cursor: pointer; background: var(--c); color: #000; }
 
-.style-sintonia { --c: #00d4ff; --rgb: 0, 212, 255; }
-.style-nempensar { --c: #FFD700; --rgb: 255, 215, 0; }
-.style-letras { --c: #9b7cff; --rgb: 155, 124, 255; }
-.style-imperium { --c: #ff0033; --rgb: 255, 0, 51; }
-.style-conhece { --c: #2dd36f; --rgb: 45, 211, 111; }
+/* =========================================================
+   ✅ CORREÇÃO (sem mudar vinheta nem JS):
+   O JS usa classes "style-xxx", então o CSS agora aceita
+   "style-xxx" E "xxx" para manter todo o visual original.
+========================================================= */
+.sintonia, .style-sintonia { --c: #00d4ff; --rgb: 0, 212, 255; }
+.nempensar, .style-nempensar { --c: #FFD700; --rgb: 255, 215, 0; }
+.letras, .style-letras { --c: #9b7cff; --rgb: 155, 124, 255; }
+.imperium, .style-imperium { --c: #ff0033; --rgb: 255, 0, 51; }
+.conhece, .style-conhece { --c: #2dd36f; --rgb: 45, 211, 111; }
+.eco, .style-eco { --c: #4dd0e1; --rgb: 77, 208, 225; }
 
 .nav-dots { display: flex; gap: 10px; justify-content: center; padding: 10px 0 20px; }
 .dot { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); transition: 0.4s; }
@@ -239,18 +245,54 @@ function iniciarAbertura() {
 
 // --- LÓGICA DO HUB [PRESERVADA] ---
 const JEA_GAMES = [
-    { title: "NEM PENSAR", desc: "Onde o óbvio é o seu maior inimigo. Faça o grupo adivinhar a palavra secreta, mas cuidado: as respostas mais comuns estão proibidas!", icon: "🤫", tags: ["PARTY GAME", "CRIATIVIDADE", "RÁPIDO", "2-10 PLAYERS"], style: "style-nempensar", url: "nem-pensar.html" },
-    { title: "CADÊ AS LETRAS?", desc: "Seus dedos e sua mente precisam voar. Uma categoria é sorteada: quem consegue encontrar as palavras e descartar suas letras primeiro?", icon: "🔤", tags: ["AGILIDADE", "VOCABULÁRIO", "COMPETITIVO", "2-6 PLAYERS"], style: "style-letras", url: "letras.html" },
-    { title: "IMPERIUM", desc: "Ninguém é o que parece. Use influências políticas e assuma papéis ocultos para desmascarar traidores antes que o trono do Rei caia.", icon: "🏰", tags: ["ESTRATÉGIA", "BLEFE", "SOCIAL", "4-12 PLAYERS"], style: "style-imperium", url: "imperium.html" },
-    { 
-        title: "SINTONIA", 
-        desc: "Vocês estão na mesma frequência? Pense rápido, toque nos sensores e fale a mesma palavra que seu parceiro no momento exato da conexão.", 
-        icon: "🧬", 
-        tags: ["CONEXÃO", "SINCRONIA", "RÁPIDO", "2-10 PLAYERS"], 
-        style: "style-sintonia", 
-        url: "sintonia.html" 
+    {
+        title: "NEM PENSAR",
+        desc: "Onde o óbvio é o seu maior inimigo. Faça o grupo adivinhar a palavra secreta, mas cuidado: as respostas mais comuns estão proibidas!",
+        icon: "🤫",
+        tags: ["PARTY GAME", "CRIATIVIDADE", "RÁPIDO", "2-10 PLAYERS"],
+        style: "style-nempensar",
+        url: "nem-pensar.html"
     },
-    { title: "VOCÊ NÃO ME CONHECE", desc: "O quanto você sabe sobre quem está ao seu lado? Conte histórias inusitadas e tente descobrir quem está falando a verdade no grupo.", icon: "🎭", tags: ["HISTÓRIAS", "SOCIAL", "DEDUÇÃO", "3-8 PLAYERS"], style: "style-conhece", url: "conhece.html" }
+    {
+        title: "CADÊ AS LETRAS?",
+        desc: "Seus dedos e sua mente precisam voar. Uma categoria é sorteada: quem consegue encontrar as palavras e descartar suas letras primeiro?",
+        icon: "🔤",
+        tags: ["AGILIDADE", "VOCABULÁRIO", "COMPETITIVO", "2-6 PLAYERS"],
+        style: "style-letras",
+        url: "letras.html"
+    },
+    {
+        title: "IMPERIUM",
+        desc: "Ninguém é o que parece. Use influências políticas e assuma papéis ocultos para desmascarar traidores antes que o trono do Rei caia.",
+        icon: "🏰",
+        tags: ["ESTRATÉGIA", "BLEFE", "SOCIAL", "4-12 PLAYERS"],
+        style: "style-imperium",
+        url: "imperium.html"
+    },
+    {
+        title: "SINTONIA",
+        desc: "Vocês estão na mesma frequência? Pense rápido, toque nos sensores e fale a mesma palavra que seu parceiro no momento exato da conexão.",
+        icon: "🧬",
+        tags: ["CONEXÃO", "SINCRONIA", "RÁPIDO", "2-10 PLAYERS"],
+        style: "style-sintonia",
+        url: "sintonia.html"
+    },
+    {
+        title: "ECO",
+        desc: "Toque antes que o silêncio te pegue. Um tema é revelado e a palavra precisa ecoar no ritmo certo. Errou, hesitou ou repetiu? Prepare-se para o desafio.",
+        icon: "🌀",
+        tags: ["RITMO", "RÁPIDO", "SOCIAL", "3-12 PLAYERS"],
+        style: "style-eco",
+        url: "eco.html"
+    },
+    {
+        title: "VOCÊ NÃO ME CONHECE",
+        desc: "O quanto você sabe sobre quem está ao seu lado? Conte histórias inusitadas e tente descobrir quem está falando a verdade no grupo.",
+        icon: "🎭",
+        tags: ["HISTÓRIAS", "SOCIAL", "DEDUÇÃO", "3-8 PLAYERS"],
+        style: "style-conhece",
+        url: "conhece.html"
+    }
 ];
 
 let cur = 0;
@@ -265,7 +307,18 @@ function render() {
         else if(idx === (cur - 1 + JEA_GAMES.length) % JEA_GAMES.length) card.classList.add("card-left");
         else if(idx === (cur + 1) % JEA_GAMES.length) card.classList.add("card-right");
         else card.classList.add("card-hidden");
-        card.innerHTML = `<div class="game-icon-slot">${game.icon}</div><div class="game-info"><h2>${game.title}</h2><p>${game.desc}</p></div><div class="game-meta"><div class="tags">${game.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div><button class="btn-play" onclick="location.href='${game.url}'">JOGAR AGORA</button></div>`;
+        card.innerHTML =
+          `<div class="game-icon-slot">${game.icon}</div>
+           <div class="game-info">
+             <h2>${game.title}</h2>
+             <p>${game.desc}</p>
+           </div>
+           <div class="game-meta">
+             <div class="tags">
+               ${game.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+             </div>
+             <button class="btn-play" onclick="location.href='${game.url}'">JOGAR AGORA</button>
+           </div>`;
         container.appendChild(card);
         const d = document.createElement("div");
         d.className = `dot ${idx === cur ? 'active' : ''}`;

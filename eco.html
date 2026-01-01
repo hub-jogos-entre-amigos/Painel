@@ -1,0 +1,1779 @@
+<!-- =========================================================
+  1. INTRODUÇÃO AO HTML
+  (Arquivo standalone / offline-friendly / sem libs)
+========================================================== -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>ECO — Jogos Entre Amigos</title>
+
+  <!-- Fonte (padrão do ECO) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- =========================================================
+    2. ESTILOS (VISUAL PADRÃO / GLASS / SCREENS / MODAIS)
+    REGRA: não reestilizar fora do padrão
+  ========================================================== -->
+  <style>
+    :root{
+      --bg1:#030207;
+      --bg2:#001b1f;
+      --accent:#00d4ff;
+      --accent2:#38f7ff;
+      --danger:#c0243b;
+      --ok:#1edc7b;
+
+      --glass: rgba(255,255,255,0.08);
+      --glassBorder: rgba(255,255,255,0.14);
+
+      --shadow: 0 18px 45px rgba(0,0,0,0.45);
+    }
+
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      font-family: 'Rajdhani', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at center, var(--bg2) 0%, var(--bg1) 100%);
+      color:#fff;
+      overflow:hidden;
+    }
+
+    /* ===== Screen padrão ===== */
+    .screen{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+    }
+    .screen.active{ display:flex; }
+
+    /* ===== Card padrão ===== */
+    .card{
+      width:100%;
+      max-width:520px;
+      background: var(--glass);
+      border:1px solid var(--glassBorder);
+      border-radius:18px;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+
+    .title{
+      margin:0 0 10px;
+      font-size:2.2rem;
+      letter-spacing:5px;
+      text-align:center;
+      color:#fff;
+      text-transform:uppercase;
+    }
+
+    .subtitle{
+      margin:0;
+      text-align:center;
+      color: rgba(255,255,255,0.8);
+      font-size:1.1rem;
+      line-height:1.5;
+    }
+
+    .divider{
+      height:1px;
+      width:100%;
+      background: rgba(255,255,255,0.12);
+      margin:16px 0;
+    }
+
+    /* ===== Botões padrão ===== */
+    .btn{
+      border:none;
+      border-radius:18px;
+      padding:16px 18px;
+      font-family:inherit;
+      font-weight:800;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+    }
+
+    .btn:active{ transform: translateY(1px); }
+
+    .btn-primary{
+      background: linear-gradient(180deg, rgba(0,212,255,0.95), rgba(0,160,195,0.95));
+      color:#001216;
+    }
+
+    .btn-outline{
+      background: rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.16);
+      color:#fff;
+      box-shadow:none;
+    }
+
+    .btn-danger{
+      background: linear-gradient(180deg, rgba(210,52,85,0.95), rgba(140,20,45,0.95));
+      color:#fff;
+    }
+
+    .btn-ghost{
+      background: rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.12);
+      color:#fff;
+      box-shadow:none;
+    }
+
+    .btn:disabled{
+      opacity:0.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    /* ===== Input padrão ===== */
+    .input{
+      width:100%;
+      height:64px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.16);
+      background: rgba(0,0,0,0.22);
+      color:#fff;
+      padding:12px 16px;
+      line-height:1.2;
+      font-family:inherit;
+      font-weight:700;
+      letter-spacing:1px;
+      outline:none;
+    }
+    .input::placeholder{ color: rgba(255,255,255,0.55); font-weight:600; }
+
+    /* ===== Botão som (fixo) ===== */
+    .sound-btn{
+      position:fixed;
+      top: calc(env(safe-area-inset-top) + 14px);
+      left: calc(env(safe-area-inset-left) + 14px);
+      width:44px;
+      height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      background: var(--glass);
+      border:1px solid var(--glassBorder);
+      backdrop-filter: blur(10px);
+      color:#fff;
+      font-size:18px;
+      z-index:999;
+      user-select:none;
+      cursor:pointer;
+    }
+
+    /* ===== Menu (hambúrguer) ===== */
+    .menu-btn{
+      position:fixed;
+      top: calc(env(safe-area-inset-top) + 14px);
+      right: calc(env(safe-area-inset-right) + 14px);
+      width:54px;
+      height:54px;
+      border-radius:999px;
+      background: var(--glass);
+      border:1px solid var(--glassBorder);
+      backdrop-filter: blur(10px);
+      color:#fff;
+      font-size:22px;
+      z-index:999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    /* ===== Modal padrão ===== */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+      z-index:1000;
+    }
+    .modal-backdrop.active{ display:flex; }
+
+    .modal{
+      width:100%;
+      max-width:520px;
+      background: rgba(10,10,12,0.68);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:18px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+
+    .modal-title{
+      text-align:center;
+      margin:0 0 12px;
+      font-size:1.6rem;
+      letter-spacing:5px;
+      text-transform:uppercase;
+      color: var(--accent);
+    }
+
+    .modal-actions{
+      display:grid;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    /* ===== Setup: lista rolável + iniciar fixo ===== */
+    #screen-setup .card{
+      display:flex;
+      flex-direction:column;
+      max-height: calc(100dvh - 56px);
+    }
+
+    #screen-setup .setup-scroll{
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 2px;
+    }
+
+    #screen-setup .setup-footer{
+      position: sticky;
+      bottom: 0;
+      padding-top: 12px;
+      background: rgba(0,0,0,0.10);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.10);
+    }
+
+    /* ===== Lista de jogadores (setup) ===== */
+    .player-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+      margin-bottom:12px;
+    }
+    .player-name{
+      font-size:1.6rem;
+      font-weight:900;
+      letter-spacing:2px;
+      text-transform:capitalize;
+    }
+    .btn-remove{
+      padding:14px 16px;
+      border-radius:18px;
+      border:none;
+      cursor:pointer;
+      font-family:inherit;
+      font-weight:900;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      background: linear-gradient(180deg, rgba(210,52,85,0.95), rgba(140,20,45,0.95));
+      color:#fff;
+      min-width:120px;
+    }
+
+    /* ===== Carta / Reveal ===== */
+    .reveal-icon{
+      font-size:5.2rem;
+      filter: drop-shadow(0 0 30px rgba(0,212,255,0.45));
+      text-align:center;
+      margin-top:6px;
+    }
+    .reveal-label{
+      text-align:center;
+      color: var(--accent);
+      font-weight:900;
+      letter-spacing:5px;
+      text-transform:uppercase;
+      margin:14px 0 6px;
+      font-size:1.1rem;
+    }
+    .reveal-theme{
+      text-align:center;
+      font-size:1.8rem;
+      font-weight:900;
+      letter-spacing:1px;
+      line-height:1.25;
+      margin:0;
+      padding: 10px 8px;
+    }
+    .reveal-count{
+      text-align:center;
+      margin-top:14px;
+      font-size:3.2rem;
+      font-weight:900;
+      letter-spacing:2px;
+      color:#fff;
+    }
+
+    /* ===== Arena ===== */
+    .arena-grid{
+      display:grid;
+      gap:14px;
+    }
+    .arena-card{
+      background: rgba(0,0,0,0.18);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:18px;
+      padding:16px;
+    }
+    .arena-top-label{
+      text-align:center;
+      color: var(--accent);
+      font-weight:900;
+      letter-spacing:6px;
+      text-transform:uppercase;
+      margin:0 0 6px;
+      font-size:1.05rem;
+    }
+    .arena-theme{
+      text-align:center;
+      font-size:1.55rem;
+      font-weight:900;
+      margin:0;
+      line-height:1.25;
+    }
+
+    .turn-wrap{
+      text-align:center;
+      padding: 12px 10px;
+    }
+
+    .turn-label{
+      color: rgba(255,255,255,0.72);
+      letter-spacing:7px;
+      font-weight:900;
+      text-transform:uppercase;
+      margin:0 0 10px;
+      font-size:1.05rem;
+    }
+
+    .turn-player{
+      font-size:2.6rem;
+      font-weight:900;
+      letter-spacing:2px;
+      text-transform:capitalize;
+      margin:0;
+      text-shadow: 0 0 18px rgba(0,212,255,0.25);
+    }
+
+    .big-timer{
+      text-align:center;
+      font-size:5.6rem;
+      font-weight:900;
+      margin: 10px 0 0;
+      line-height:1;
+      letter-spacing:2px;
+    }
+
+    .small-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+
+    .mini-box{
+      background: rgba(0,0,0,0.18);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:18px;
+      padding:14px;
+      text-align:center;
+    }
+    .mini-label{
+      color: rgba(255,255,255,0.72);
+      font-weight:900;
+      letter-spacing:6px;
+      text-transform:uppercase;
+      font-size:0.95rem;
+      margin:0 0 8px;
+    }
+    .mini-val{
+      font-size:1.7rem;
+      font-weight:900;
+      margin:0;
+    }
+
+    .arena-btns{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    .arena-btns .btn{
+      padding:22px 18px;
+      font-size:1.05rem;
+      border-radius:22px;
+    }
+
+    /* ===== Votação ===== */
+    .vote-info{
+      text-align:center;
+      font-size:1.2rem;
+      font-weight:800;
+      letter-spacing:1px;
+      color: rgba(255,255,255,0.85);
+    }
+    .vote-players{
+      text-align:center;
+      font-size:1.05rem;
+      color: rgba(255,255,255,0.72);
+      margin-top:8px;
+      line-height:1.5;
+    }
+
+    /* ===== Placar ===== */
+    .score-list .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.16);
+      margin-bottom:10px;
+    }
+    .score-list .nm{
+      font-weight:900;
+      letter-spacing:1px;
+      text-transform:capitalize;
+      font-size:1.25rem;
+    }
+    .score-list .pts{
+      font-weight:900;
+      letter-spacing:2px;
+      font-size:1.35rem;
+      color: var(--accent);
+      min-width:52px;
+      text-align:right;
+    }
+
+    /* Safe area */
+    .pad-bottom{
+      padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+    }
+
+    /* ===== Vinheta (CSS aprovado) ===== */
+    #scr-teaser{
+      width:100%;
+      max-width:500px;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:30px;
+      text-align:center;
+      position:relative;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .tap-hint{
+      position:absolute;
+      font-size:1.05rem;
+      text-transform:uppercase;
+      letter-spacing:3px;
+      font-weight:800;
+      color:var(--accent);
+      animation: blink 1.5s infinite;
+      z-index:10;
+      pointer-events:none;
+    }
+
+    .teaser-content{
+      display:none;
+      flex-direction:column;
+      align-items:center;
+    }
+    .teaser-content.active{ display:flex; }
+
+    .swirl-icon{
+      font-size:7.8rem;
+      filter: drop-shadow(0 0 35px rgba(0,212,255,0.55));
+      transform-origin:center;
+      will-change: transform, opacity;
+      opacity:0;
+    }
+    .swirl-icon.run{
+      animation: swirl7s 7s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    @keyframes swirl7s{
+      0%   { transform: scale(0.62) rotate(0deg);      opacity:0; }
+      10%  { transform: scale(1.05) rotate(260deg);    opacity:1; }
+      45%  { transform: scale(0.99) rotate(840deg);    opacity:1; }
+      100% { transform: scale(0.90) rotate(1320deg);   opacity:1; }
+    }
+
+    .teaser-title{
+      font-size:3.6rem;
+      font-weight:700;
+      letter-spacing:8px;
+      color:var(--accent);
+      margin-top:18px;
+      text-shadow: 0 0 22px rgba(0,212,255,0.45);
+      opacity:0;
+    }
+    .teaser-title.show{ animation: fadeIn .9s forwards; }
+
+    .teaser-phrase{
+      font-size:1.12rem;
+      line-height:1.55;
+      max-width:360px;
+      color:rgba(255,255,255,0.84);
+      margin-top:14px;
+      opacity:0;
+    }
+    .teaser-phrase.show{ animation: fadeIn 1.1s forwards; }
+    .teaser-phrase b{ color: var(--accent); }
+
+    @keyframes fadeIn{
+      from{ opacity:0; transform: translateY(16px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+    @keyframes blink{
+      0%,100%{ opacity:.25; }
+      50%{ opacity:1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botão de som fixo -->
+  <div class="sound-btn" id="soundBtn" aria-label="Som" title="Som">🔊</div>
+
+  <!-- Menu hambúrguer fixo -->
+  <div class="menu-btn" id="menuBtn" aria-label="Menu" title="Menu">☰</div>
+
+  <!-- =========================================================
+    3. SCREENS (VINHETA -> SETUP -> PREPARAÇÃO -> CARTA -> ARENA
+              -> VOTAÇÃO -> RESULTADOS)
+  ========================================================== -->
+
+  <!-- 3.1 VINHETA -->
+  <div class="screen active" id="screen-vinheta">
+    <div id="scr-teaser">
+      <div class="tap-hint" id="hint">Toque antes que o silêncio te pegue</div>
+
+      <div class="teaser-content" id="contentTeaser">
+        <div class="swirl-icon" id="swirl" aria-hidden="true">🌀</div>
+
+        <div class="teaser-title" id="titleEco">ECO</div>
+
+        <div class="teaser-phrase" id="phraseEco">
+          <b>Uma palavra puxa a outra.</b><br/>
+          O ritmo nunca para,<br/>
+          e o silêncio sempre denuncia.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.2 SETUP (inscrição de jogadores) -->
+  <div class="screen" id="screen-setup">
+    <div class="card pad-bottom">
+      <div class="title">ECO</div>
+      <p class="subtitle">
+        Adicione de <b>3 a 12</b> jogadores.<br/>
+        Depois, sorteamos um tema e o ritmo começa.
+      </p>
+
+      <div class="divider"></div>
+
+      <input class="input" id="playerNameInput" maxlength="18" placeholder="Nome do jogador" />
+      <button class="btn btn-primary" id="addPlayerBtn" style="width:100%; margin-top:10px;">
+        Adicionar
+      </button>
+
+      <div class="divider"></div>
+
+      <div class="setup-scroll">
+        <div id="playerList"></div>
+      </div>
+
+      <div class="setup-footer">
+        <div class="btn-row" style="margin:0;">
+          <button class="btn btn-primary" id="startGameBtn" style="width:100%;" disabled>
+            Iniciar partida
+          </button>
+        </div>
+
+        <div style="margin-top:10px; text-align:center; color:rgba(255,255,255,0.75); font-size:1.05rem; line-height:1.45;">
+          Dica: combine o tempo antes de começar.<br/>
+          Você pode ajustar durante a rodada.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.3 PREPARAÇÃO (antes de revelar o tema) -->
+  <div class="screen" id="screen-prep">
+  <div class="card pad-bottom">
+    <div class="title" style="color:var(--accent);">PREPARAÇÃO</div>
+    <p class="subtitle" style="margin-top:8px;">
+      Celular na mesa.<br/>
+      Escolham quem começa no sentido horário.
+    </p>
+
+    <div class="divider"></div>
+
+    <div class="mini-box">
+      <p class="mini-label" style="margin:0 0 8px;">TEMPO DA RODADA</p>
+      <p class="mini-val" id="prepTimeVal" style="margin:0;">5s</p>
+    </div>
+
+    <div class="small-grid" style="margin-top:12px;">
+      <button class="btn btn-ghost" id="timeDownBtn">− Tempo</button>
+      <button class="btn btn-ghost" id="timeUpBtn">+ Tempo</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-primary" id="allReadyBtn" style="width:100%;">Todos prontos</button>
+  </div>
+</div>
+
+<!-- 3.4 CARTA (tema + contagem de 5s leitura) -->
+
+  <!-- 3.4 CARTA (tema + contagem de 5s leitura) -->
+  <div class="screen" id="screen-reveal">
+    <div class="card pad-bottom">
+      <div class="reveal-icon">🌀</div>
+      <div class="reveal-label">TEMA</div>
+      <div class="arena-card">
+        <h3 class="reveal-theme" id="revealThemeText">...</h3>
+      </div>
+      <div class="reveal-count" id="revealCount">5</div>
+      <p class="subtitle" style="margin-top:10px;">
+        Leiam em voz alta.<br/>
+        O ritmo começa já.
+      </p>
+    </div>
+  </div>
+<!-- 3.5 ARENA (jogo rodando) -->
+  <div class="screen" id="screen-arena">
+    <div class="card pad-bottom">
+      <div class="arena-grid">
+
+        <div class="arena-card">
+          <div class="arena-top-label">TEMA</div>
+          <p class="arena-theme" id="arenaThemeText">...</p>
+        </div>
+
+        <div class="arena-card turn-wrap">
+          <div class="turn-label">VEZ DE</div>
+          <div class="turn-player" id="turnPlayerName">---</div>
+          <div class="big-timer" id="turnTimer">5</div>
+        </div>
+
+        <div class="small-grid">
+          <div class="mini-box">
+            <div class="mini-label">TEMPO</div>
+            <div class="mini-val" id="arenaTimeVal">5s</div>
+          </div>
+          <div class="mini-box">
+            <div class="mini-label">ATUAL</div>
+            <div class="mini-val" id="arenaCurrentVal">---</div>
+          </div>
+        </div>
+
+        <div class="arena-btns">
+          <button class="btn btn-outline" id="challengeBtn">Desafio</button>
+          <button class="btn btn-danger" id="failBtn">Errou / Silêncio</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.6 VOTAÇÃO (desafio) -->
+  <div class="screen" id="screen-vote">
+    <div class="card pad-bottom">
+      <div class="title" style="color:var(--accent);">VOTAÇÃO</div>
+
+      <div class="arena-card">
+        <p class="vote-info" id="voteInfo">Desafio: X vs Y</p>
+        <p class="vote-players" id="voteProgress">Voto 1 de N</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="arena-btns">
+        <button class="btn btn-outline" id="voteForChallengerBtn">Razão do Desafiante</button>
+        <button class="btn btn-outline" id="voteForChallengedBtn">Razão do Desafiado</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn-primary" id="nextVoterBtn" disabled>Próximo votante</button>
+      <p class="subtitle" style="margin-top:10px;">Passe o celular.</p>
+    </div>
+  </div>
+
+  <!-- 3.7 RESULTADO DA VOTAÇÃO (tela final) -->
+  <div class="screen" id="screen-vote-result">
+    <div class="card pad-bottom">
+      <div class="title" style="color:var(--accent);">RESULTADO</div>
+
+      <div class="arena-card">
+        <p class="vote-info" id="voteResultLine">---</p>
+        <p class="vote-players" id="voteCountsLine">---</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn-primary" id="nextRoundFromVoteBtn">Próxima rodada</button>
+    </div>
+  </div>
+
+  <!-- 3.8 RESULTADO DO ERRO (tela final) -->
+  <div class="screen" id="screen-fail-result">
+    <div class="card pad-bottom">
+      <div class="title" style="color:var(--danger);">FALHA</div>
+
+      <div class="arena-card">
+        <p class="vote-info" id="failResultLine">---</p>
+        <p class="vote-players" style="margin-top:8px;">Novo tema na próxima rodada.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn-primary" id="nextRoundFromFailBtn">Próxima rodada</button>
+    </div>
+  </div>
+
+  <!-- =========================================================
+    4. MODAIS (MENU / REGRAS / PLACAR / SELEÇÕES)
+  ========================================================== -->
+
+  <!-- 4.1 MENU -->
+  <div class="modal-backdrop" id="menuModal">
+    <div class="modal">
+      <div class="modal-title">MENU</div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="openRulesBtn">Regras</button>
+        <button class="btn btn-outline" id="openScoreBtn">Placar</button>
+        <button class="btn btn-ghost" id="resetBtn">Reiniciar jogo</button>
+        <button class="btn btn-outline" id="backHubBtn">Voltar ao Hub</button>
+        <button class="btn btn-primary" id="closeMenuBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.2 REGRAS -->
+  <div class="modal-backdrop" id="rulesModal">
+    <div class="modal">
+      <div class="modal-title">REGRAS</div>
+      <div style="color:rgba(255,255,255,0.85); font-size:1.05rem; line-height:1.55;">
+        <b>Objetivo:</b> manter o “eco” — cada jogador fala algo ligado ao <b>TEMA</b> e à linha do que vem sendo dito.<br/><br/>
+        <b>Tempo:</b> a cada ciclo, se ninguém apertar nada, o jogador da vez ganha <b>+1</b> automaticamente.<br/>
+        <b>Erro/Silêncio:</b> confirma quem falhou, encerra o tema e vai para a próxima rodada.<br/>
+        <b>Desafio:</b> escolhe desafiante e desafiado; o grupo vota e o tema termina. Empate favorece o desafiado.
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="closeRulesBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.3 PLACAR -->
+  <div class="modal-backdrop" id="scoreModal">
+    <div class="modal">
+      <div class="modal-title">PLACAR</div>
+      <div class="score-list" id="scoreList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="closeScoreBtn">Fechar</button>
+      </div>
+    </div>
+  </div>
+<!-- 4.4 MODAL: QUEM ERROU? -->
+  <div class="modal-backdrop" id="failModal">
+    <div class="modal">
+      <div class="modal-title" style="color:#ff4161;">ERROU / SILENCIOU?</div>
+      <div style="text-align:center; color:rgba(255,255,255,0.80); font-size:1.05rem;">
+        Quem errou?
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="failPickGrid" style="display:grid; gap:10px;"></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="confirmFailBtn" disabled>Confirmar</button>
+        <button class="btn btn-outline" id="cancelFailBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.5 MODAL: DESAFIO (quem desafiou / quem foi desafiado) -->
+  <div class="modal-backdrop" id="challengeModal">
+    <div class="modal">
+      <div class="modal-title">DESAFIO</div>
+
+      <div style="color:rgba(255,255,255,0.85); font-size:1.05rem; line-height:1.45;">
+        <b>1)</b> Quem desafiou?
+      </div>
+      <div class="divider" style="margin:10px 0;"></div>
+      <div id="challengerGrid" style="display:grid; gap:10px;"></div>
+
+      <div class="divider"></div>
+
+      <div style="color:rgba(255,255,255,0.85); font-size:1.05rem; line-height:1.45;">
+        <b>2)</b> Quem foi desafiado?
+      </div>
+      <div class="divider" style="margin:10px 0;"></div>
+      <div id="challengedGrid" style="display:grid; gap:10px;"></div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="startVoteBtn" disabled>Iniciar votação</button>
+        <button class="btn btn-outline" id="cancelChallengeBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+<!-- =========================================================
+  5. SCRIPT (LÓGICA DO JOGO + SONOPLASTIA)
+========================================================== -->
+<script>
+  /* =========================================================
+    5.1 VARIÁVEIS GLOBAIS
+  ========================================================== */
+  let audioCtx = null;
+  let audioEnabled = true;
+
+  const screens = {
+    vinheta: document.getElementById('screen-vinheta'),
+    setup: document.getElementById('screen-setup'),
+    prep: document.getElementById('screen-prep'),
+    reveal: document.getElementById('screen-reveal'),
+    arena: document.getElementById('screen-arena'),
+    vote: document.getElementById('screen-vote'),
+    voteResult: document.getElementById('screen-vote-result'),
+    failResult: document.getElementById('screen-fail-result'),
+  };
+
+  const soundBtn = document.getElementById('soundBtn');
+  const menuBtn  = document.getElementById('menuBtn');
+
+  // Vinheta
+  const scrTeaser     = document.getElementById('scr-teaser');
+  const hint          = document.getElementById('hint');
+  const contentTeaser = document.getElementById('contentTeaser');
+  const swirl         = document.getElementById('swirl');
+  const titleEco      = document.getElementById('titleEco');
+  const phraseEco     = document.getElementById('phraseEco');
+
+  // Setup
+  const playerNameInput = document.getElementById('playerNameInput');
+  const addPlayerBtn    = document.getElementById('addPlayerBtn');
+  const playerList      = document.getElementById('playerList');
+  const startGameBtn    = document.getElementById('startGameBtn');
+
+  // Prep
+  const prepTimeVal = document.getElementById('prepTimeVal');
+  const timeDownBtn = document.getElementById('timeDownBtn');
+  const timeUpBtn   = document.getElementById('timeUpBtn');
+  const allReadyBtn = document.getElementById('allReadyBtn');
+
+  // Reveal
+  const revealThemeText = document.getElementById('revealThemeText');
+  const revealCount     = document.getElementById('revealCount');
+
+  // Arena
+  const arenaThemeText  = document.getElementById('arenaThemeText');
+  const turnPlayerName  = document.getElementById('turnPlayerName');
+  const turnTimerEl     = document.getElementById('turnTimer');
+  const arenaTimeVal    = document.getElementById('arenaTimeVal');
+  const arenaCurrentVal = document.getElementById('arenaCurrentVal');
+  const challengeBtn    = document.getElementById('challengeBtn');
+  const failBtn         = document.getElementById('failBtn');
+
+  // >>> NOVO: elementos-alvo para “moldura” por cor do jogador
+  const turnFrameEl = document.querySelector('#screen-arena .arena-card.turn-wrap');
+  const currentMiniBoxEl = arenaCurrentVal?.closest('.mini-box') || null;
+
+  // Menu / Regras / Placar
+  const menuModal    = document.getElementById('menuModal');
+  const rulesModal   = document.getElementById('rulesModal');
+  const scoreModal   = document.getElementById('scoreModal');
+  const openRulesBtn = document.getElementById('openRulesBtn');
+  const openScoreBtn = document.getElementById('openScoreBtn');
+  const closeMenuBtn = document.getElementById('closeMenuBtn');
+  const closeRulesBtn = document.getElementById('closeRulesBtn');
+  const closeScoreBtn = document.getElementById('closeScoreBtn');
+  const resetBtn     = document.getElementById('resetBtn');
+  const backHubBtn   = document.getElementById('backHubBtn');
+
+  const scoreListEl = document.getElementById('scoreList');
+
+  // Fail modal
+  const failModal = document.getElementById('failModal');
+  const failPickGrid = document.getElementById('failPickGrid');
+  const confirmFailBtn = document.getElementById('confirmFailBtn');
+  const cancelFailBtn = document.getElementById('cancelFailBtn');
+
+  // Challenge modal
+  const challengeModal = document.getElementById('challengeModal');
+  const challengerGrid = document.getElementById('challengerGrid');
+  const challengedGrid = document.getElementById('challengedGrid');
+  const startVoteBtn   = document.getElementById('startVoteBtn');
+  const cancelChallengeBtn = document.getElementById('cancelChallengeBtn');
+
+  // Vote screen
+  const voteInfo = document.getElementById('voteInfo');
+  const voteProgress = document.getElementById('voteProgress');
+  const voteForChallengerBtn = document.getElementById('voteForChallengerBtn');
+  const voteForChallengedBtn = document.getElementById('voteForChallengedBtn');
+  const nextVoterBtn = document.getElementById('nextVoterBtn');
+
+  // Vote result screen
+  const voteResultLine  = document.getElementById('voteResultLine');
+  const voteCountsLine  = document.getElementById('voteCountsLine');
+  const nextRoundFromVoteBtn = document.getElementById('nextRoundFromVoteBtn');
+
+  // Fail result screen
+  const failResultLine  = document.getElementById('failResultLine');
+  const nextRoundFromFailBtn = document.getElementById('nextRoundFromFailBtn');
+
+  /* =========================================================
+    5.2 ESTADO DO JOGO
+  ========================================================== */
+  const playerColors = [
+    "#00d4ff","#38f7ff","#1edc7b","#ffd166","#ff4d6d",
+    "#b517ff","#4d96ff","#ff8fab","#caffbf","#ffbe0b",
+    "#9bf6ff","#aaccff"
+  ];
+
+  let players = []; // {name, points, color}
+  let timePerTurn = 5; // padrão
+  let currentTheme = "";
+  let currentIndex = 0;
+
+  let loopInterval = null;
+  let turnRemaining = 5;
+  let inArena = false;
+
+  // Desafio (estado)
+  let challenge = {
+    challenger: null,
+    challenged: null,
+    voterIndex: 0,
+    votesChallenger: 0,
+    votesChallenged: 0,
+    voted: [],
+  };
+
+  // Erro (estado)
+  let failPick = null;
+
+  /* =========================================================
+    5.3 HELPERS DE TELA / MODAL
+  ========================================================== */
+  function showScreen(key){
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[key].classList.add('active');
+  }
+
+  function openModal(el){ el.classList.add('active'); }
+  function closeModal(el){ el.classList.remove('active'); }
+
+  function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  /* =========================================================
+    5.4 ÁUDIO (WebAudio) — som só após interação
+  ========================================================== */
+  function ensureAudio(){
+    if(!audioEnabled) return Promise.resolve(false);
+    if(!audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    if(audioCtx.state === 'suspended') return audioCtx.resume().then(()=>true);
+    return Promise.resolve(true);
+  }
+
+  function ping(t, freq, amp, dur){
+    if(!audioCtx || !audioEnabled) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(amp, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+
+  function ecoSignature(){
+    if(!audioCtx || !audioEnabled) return;
+    const base = audioCtx.currentTime + 0.05;
+
+    function seq(start, mult){
+      ping(start,        660, 0.22*mult, 0.20);
+      ping(start + 0.18, 660, 0.13*mult, 0.18);
+      ping(start + 0.36, 660, 0.09*mult, 0.16);
+      ping(start + 0.54, 660, 0.06*mult, 0.14);
+      ping(start + 0.72, 660, 0.04*mult, 0.12);
+      ping(start + 0.90, 660, 0.025*mult, 0.10);
+    }
+
+    seq(base, 1.0);
+    seq(base + 1.35, 0.65);
+    seq(base + 2.70, 0.40);
+  }
+
+  function sfxTick(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 520, 0.08, 0.07); }
+  function sfxPoint(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 740, 0.10, 0.09); }
+  function sfxAdd(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 820, 0.10, 0.08); }
+  function sfxRemove(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 260, 0.10, 0.10); }
+  function sfxStart(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 520, 0.10, 0.10); ping(audioCtx.currentTime+0.13, 780, 0.12, 0.12); }
+  function sfxFail(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 180, 0.12, 0.22); }
+  function sfxChallenge(){ if(!audioCtx||!audioEnabled) return; ping(audioCtx.currentTime+0.01, 420, 0.10, 0.11); ping(audioCtx.currentTime+0.13, 620, 0.12, 0.12); }
+
+  /* =========================================================
+    5.5 UI: render do setup e placar
+  ========================================================== */
+  function renderSetup(){
+    playerList.innerHTML = "";
+
+    players.forEach((p, idx) => {
+      const row = document.createElement('div');
+      row.className = "player-row";
+
+      const nm = document.createElement('div');
+      nm.className = "player-name";
+      nm.textContent = p.name;
+
+      const rm = document.createElement('button');
+      rm.className = "btn-remove";
+      rm.textContent = "Remover";
+      rm.addEventListener('click', async () => {
+        await ensureAudio();
+        sfxRemove();
+        players.splice(idx, 1);
+        renderSetup();
+      });
+
+      row.appendChild(nm);
+      row.appendChild(rm);
+      playerList.appendChild(row);
+    });
+
+    startGameBtn.disabled = players.length < 3;
+  }
+
+  function renderScore(){
+    scoreListEl.innerHTML = "";
+    players.forEach(p => {
+      const row = document.createElement('div');
+      row.className = "row";
+
+      const nm = document.createElement('div');
+      nm.className = "nm";
+      nm.textContent = p.name;
+      nm.style.color = p.color;
+
+      const pts = document.createElement('div');
+      pts.className = "pts";
+      pts.textContent = p.points;
+
+      row.appendChild(nm);
+      row.appendChild(pts);
+      scoreListEl.appendChild(row);
+    });
+  }
+
+  /* =========================================================
+    5.6 TEMAS
+  ========================================================== */
+  const TEMAS = [
+    "Coisas típicas de shopping",
+    "Coisas que você não diria no trabalho",
+    "Cheiros estranhos",
+    "Vilões famosos",
+    "Manias de adulto",
+    "Coisas que dão vergonha alheia",
+    "Mentiras que todo mundo conta",
+    "Coisas que somem em casa",
+    "Apelidos constrangedores",
+    "Lugares onde dá medo",
+    "Desculpas esfarrapadas",
+    "Coisas que irritam no trânsito",
+    "Sons que incomodam",
+    "Frases de mãe",
+    "Coisas que quebram fácil",
+    "Coisas que dão azar",
+    "Superpoderes inúteis",
+    "Coisas que todo mundo faz escondido",
+    "Filmes clássicos",
+    "Séries que viciam",
+    "Gírias antigas",
+    "Coisas que você colecionaria",
+    "Objetos que viram arma no improviso",
+    "Coisas que não combinam",
+    "Comidas que dividem opiniões",
+    "Coisas que só rico faz",
+    "Coisas que só pobre faz",
+    "Coisas que você faz quando está ansioso",
+    "Coisas que você faz quando está com sono",
+    "Nomes que parecem de vilão",
+    "Nomes que parecem de herói",
+    "Animais com cara de gente",
+    "Coisas que você esquece no bolso",
+    "Coisas que você esquece no carro",
+    "Coisas que você esquece no banheiro",
+    "Coisas que dão medo à noite",
+    "Coisas que fazem barulho alto",
+    "Coisas que você faria com 1 milhão",
+    "Coisas que você faria se fosse invisível",
+    "Coisas que você faria se tivesse superforça",
+    "Coisas que você faria se pudesse voltar no tempo",
+    "Coisas que você faria se pudesse ler mentes",
+    "Causas de briga boba",
+    "Razões para pedir desculpa",
+    "Frases que terminam em 'né?'",
+    "Coisas que você fala no médico",
+    "Coisas que você fala no dentista",
+    "Coisas que você fala no salão",
+    "Coisas que você fala no bar",
+    "Coisas que você fala em reunião",
+    "Coisas que você fala em casamento",
+    "Coisas que você fala em velório",
+    "Coisas que você fala em estádio",
+    "Coisas que você fala em festa",
+    "Coisas que você fala no elevador",
+    "Coisas que você fala em entrevista",
+    "Coisas que você fala na academia",
+    "Coisas que você fala no aeroporto",
+    "Coisas que você fala no supermercado",
+    "Coisas que você fala na praia",
+    "Coisas que você fala no cinema",
+    "Coisas que você fala em casa",
+    "Coisas que você fala no grupo da família",
+    "Coisas que você fala no grupo do trabalho",
+    "Coisas que você fala no grupo dos amigos",
+    "Coisas que você fala no WhatsApp",
+    "Coisas que você fala no direct",
+    "Coisas que você fala no telefone",
+    "Coisas que você fala por áudio",
+    "Coisas que você fala quando está bravo",
+    "Coisas que você fala quando está feliz",
+    "Coisas que você fala quando está triste",
+    "Coisas que você fala quando está com medo",
+    "Coisas que você fala quando está nervoso",
+    "Coisas que você fala quando está apaixonado",
+    "Coisas que você fala quando está com fome",
+    "Coisas que você fala quando está sem dinheiro",
+    "Coisas que você fala quando ganha algo",
+    "Coisas que você fala quando perde algo",
+    "Coisas que você fala quando é pego no flagra",
+    "Coisas que você fala quando está atrasado",
+    "Coisas que você fala quando está cedo demais",
+    "Coisas que você fala quando está de ressaca",
+    "Coisas que você fala quando está gripado",
+    "Coisas que você fala quando está de férias",
+    "Coisas que você fala quando está trabalhando",
+    "Coisas que você fala quando está de folga",
+    "Coisas que você fala quando está estudando",
+    "Coisas que você fala quando está procrastinando",
+    "Coisas que você fala quando está no sofá",
+    "Coisas que você fala quando está dirigindo",
+    "Coisas que você fala quando está cozinhando",
+    "Coisas que você fala quando está limpando",
+    "Coisas que você fala quando está viajando",
+    "Coisas que você fala quando está em hotel",
+    "Coisas que você fala quando está em pousada",
+    "Coisas que você fala quando está em acampamento",
+    "Coisas que você fala quando está em navio",
+    "Coisas que você fala quando está em ônibus",
+    "Coisas que você fala quando está em metrô",
+    "Coisas que você fala quando está em moto",
+    "Coisas que você fala quando está em bike",
+    "Coisas que você fala quando está andando",
+    "Coisas que você fala quando está correndo",
+    "Coisas que você fala quando está dançando",
+    "Coisas que você fala quando está cantando",
+    "Coisas que você fala quando está lendo",
+    "Coisas que você fala quando está jogando",
+    "Coisas que você fala quando está assistindo",
+    "Coisas que você fala quando está no banho",
+    "Coisas que você fala quando está no quarto",
+    "Coisas que você fala quando está na cozinha",
+    "Coisas que você fala quando está na sala",
+    "Coisas que você fala quando está no quintal",
+    "Coisas que você fala quando está na rua",
+    "Coisas que você fala quando está no parque",
+    "Coisas que você fala quando está na estrada",
+    "Coisas que você fala quando está na rodoviária",
+    "Coisas que você fala quando está no porto",
+    "Coisas que você fala quando está na fronteira",
+    "Coisas que você fala quando está em outro país",
+    "Coisas que você fala quando volta pra casa",
+    "Coisas que você fala quando chega visita",
+    "Coisas que você fala quando a visita vai embora",
+    "Coisas que você fala quando a comida queima",
+    "Coisas que você fala quando o Wi-Fi cai",
+    "Coisas que você fala quando a luz falta",
+    "Coisas que você fala quando o celular trava",
+    "Coisas que você fala quando a bateria acaba",
+    "Coisas que você fala quando perde a senha",
+    "Coisas que você fala quando erra o caminho",
+    "Coisas que você fala quando acha dinheiro",
+    "Coisas que você fala quando vê um famoso",
+    "Coisas que você fala quando encontra um ex",
+    "Coisas que você fala quando encontra um crush",
+    "Coisas que você fala quando encontra um professor",
+    "Coisas que você fala quando encontra um vizinho",
+    "Coisas que você fala quando encontra um amigo antigo",
+    "Coisas que você fala quando encontra um parente distante",
+    "Coisas que você fala quando encontra alguém chato"
+  ];
+
+  function pickTheme(){
+    return TEMAS[Math.floor(Math.random()*TEMAS.length)];
+  }
+
+/* =========================================================
+  5.7 LÓGICA: fluxo PREP -> REVEAL (5s) -> ARENA
+========================================================== */
+
+function applyPrepUI(){
+  prepTimeVal.textContent = `${timePerTurn}s`;
+}
+
+function applyArenaUI(){
+  arenaTimeVal.textContent = `${timePerTurn}s`;
+  arenaCurrentVal.textContent = players[currentIndex]?.name || "---";
+  arenaThemeText.textContent = currentTheme || "...";
+}
+
+/* =========================================================
+  LOOP DO TEMPO NA ARENA
+========================================================== */
+function stopLoop(){
+  if(loopInterval){
+    clearInterval(loopInterval);
+    loopInterval = null;
+  }
+  inArena = false;
+}
+
+function startLoop(){
+  stopLoop();
+  inArena = true;
+
+  turnRemaining = timePerTurn;
+  turnTimerEl.textContent = String(turnRemaining);
+
+  loopInterval = setInterval(() => {
+    if(!inArena) return;
+
+    turnRemaining -= 1;
+    turnTimerEl.textContent = String(turnRemaining);
+
+    ensureAudio().then(() => sfxTick());
+
+    if(turnRemaining <= 0){
+      // Tempo acabou: jogador da vez ganha +1 e passa a vez
+      players[currentIndex].points += 1;
+      ensureAudio().then(() => sfxPoint());
+
+      // Próximo jogador
+      setTurnPlayer(currentIndex + 1);
+
+      // Reset do timer
+      turnRemaining = timePerTurn;
+      turnTimerEl.textContent = String(turnRemaining);
+    }
+  }, 1000);
+}
+
+/* =========================================================
+  DESTAQUE VISUAL DO JOGADOR ATUAL
+  (borda + glow em TODOS os cards relevantes)
+========================================================== */
+function applyPlayerFrameColor(color){
+  const fallback = "rgba(255,255,255,0.12)";
+  const c = color || fallback;
+
+  const glowStrong = `0 0 0 2px ${c}, 0 0 28px ${c}55`;
+  const glowSoft   = `0 0 0 1px ${c}, 0 0 18px ${c}33`;
+
+  // Card VEZ DE (principal)
+  if(turnFrameEl){
+    turnFrameEl.style.borderColor = c;
+    turnFrameEl.style.borderWidth = "2px";
+    turnFrameEl.style.boxShadow = glowStrong;
+  }
+
+  // Mini-box ATUAL
+  if(currentMiniBoxEl){
+    currentMiniBoxEl.style.borderColor = c;
+    currentMiniBoxEl.style.borderWidth = "2px";
+    currentMiniBoxEl.style.boxShadow = glowSoft;
+  }
+
+  // Card TEMA
+  const arenaThemeCard = document.querySelector('#screen-arena .arena-card:nth-of-type(1)');
+  if(arenaThemeCard){
+    arenaThemeCard.style.borderColor = c;
+    arenaThemeCard.style.borderWidth = "2px";
+    arenaThemeCard.style.boxShadow = glowSoft;
+  }
+
+  // Mini-box TEMPO
+  const arenaTimeBox = document.getElementById('arenaTimeVal')?.closest('.mini-box');
+  if(arenaTimeBox){
+    arenaTimeBox.style.borderColor = c;
+    arenaTimeBox.style.borderWidth = "2px";
+    arenaTimeBox.style.boxShadow = glowSoft;
+  }
+}
+
+function setTurnPlayer(idx){
+  currentIndex = (idx + players.length) % players.length;
+  const p = players[currentIndex];
+
+  turnPlayerName.textContent = p?.name || "---";
+  arenaCurrentVal.textContent = p?.name || "---";
+
+  // garante cor no nome + molduras
+  if(p?.color){
+    turnPlayerName.style.color = p.color;
+    applyPlayerFrameColor(p.color);
+  }else{
+    turnPlayerName.style.color = "#fff";
+    applyPlayerFrameColor(null);
+  }
+}
+
+/* =========================================================
+  FLUXO: PREP -> REVEAL (5s) -> ARENA
+========================================================== */
+function beginRevealThenArena(){
+  stopLoop();
+
+  currentTheme = pickTheme();
+
+  // Atualiza carta
+  revealThemeText.textContent = currentTheme;
+  revealCount.textContent = "5";
+
+  showScreen('reveal');
+
+  let c = 5;
+  const t = setInterval(() => {
+    c -= 1;
+    revealCount.textContent = String(c);
+    ensureAudio().then(() => sfxTick());
+
+    if(c <= 0){
+      clearInterval(t);
+      startArena();
+    }
+  }, 1000);
+}
+
+function startArena(){
+  applyArenaUI();
+  setTurnPlayer(currentIndex); // aplica nome, cor, bordas
+  showScreen('arena');
+  startLoop();
+}
+
+/* =========================================================
+  PRÓXIMA RODADA (sempre volta pra PREPARAÇÃO)
+========================================================== */
+function goNextRoundPrep(){
+  stopLoop();
+
+  // opcional: passar a vez inicial automaticamente
+  currentIndex = (currentIndex + 1) % players.length;
+
+  currentTheme = "";
+  applyPrepUI();
+  showScreen('prep');
+}
+
+  /* =========================================================
+    5.8 ERRO / SILÊNCIO
+  ========================================================== */
+  function openFailPicker(){
+    stopLoop();
+    failPick = null;
+    confirmFailBtn.disabled = true;
+    failPickGrid.innerHTML = "";
+
+    players.forEach((p, idx) => {
+      const b = document.createElement('button');
+      b.className = "btn btn-outline";
+      b.textContent = p.name;
+      b.style.borderColor = "rgba(255,255,255,0.18)";
+      b.addEventListener('click', async () => {
+        await ensureAudio();
+        sfxTick();
+        failPick = idx;
+        confirmFailBtn.disabled = false;
+
+        [...failPickGrid.querySelectorAll('button')].forEach(x => x.style.opacity = "0.55");
+        b.style.opacity = "1";
+        b.style.borderColor = p.color;
+      });
+      failPickGrid.appendChild(b);
+    });
+
+    openModal(failModal);
+  }
+
+  function confirmFail(){
+    closeModal(failModal);
+
+    const p = players[failPick];
+    failResultLine.textContent = `${p.name} errou / silenciou.`;
+
+    ensureAudio().then(() => sfxFail());
+    renderScore();
+
+    showScreen('failResult');
+  }
+
+  /* =========================================================
+    5.9 DESAFIO + VOTAÇÃO + RESULTADO
+  ========================================================== */
+  function resetChallengeState(){
+    challenge = {
+      challenger: null,
+      challenged: null,
+      voterIndex: 0,
+      votesChallenger: 0,
+      votesChallenged: 0,
+      voted: new Array(players.length).fill(false),
+    };
+    nextVoterBtn.disabled = true;
+  }
+
+  function openChallengePicker(){
+    stopLoop();
+    resetChallengeState();
+    startVoteBtn.disabled = true;
+
+    challengerGrid.innerHTML = "";
+    challengedGrid.innerHTML = "";
+
+    players.forEach((p, idx) => {
+      const b1 = document.createElement('button');
+      b1.className = "btn btn-outline";
+      b1.textContent = p.name;
+      b1.addEventListener('click', async () => {
+        await ensureAudio(); sfxTick();
+        challenge.challenger = idx;
+        [...challengerGrid.querySelectorAll('button')].forEach(x => x.style.opacity = "0.55");
+        b1.style.opacity = "1";
+        b1.style.borderColor = p.color;
+        checkChallengeReady();
+      });
+      challengerGrid.appendChild(b1);
+
+      const b2 = document.createElement('button');
+      b2.className = "btn btn-outline";
+      b2.textContent = p.name;
+      b2.addEventListener('click', async () => {
+        await ensureAudio(); sfxTick();
+        challenge.challenged = idx;
+        [...challengedGrid.querySelectorAll('button')].forEach(x => x.style.opacity = "0.55");
+        b2.style.opacity = "1";
+        b2.style.borderColor = p.color;
+        checkChallengeReady();
+      });
+      challengedGrid.appendChild(b2);
+    });
+
+    openModal(challengeModal);
+    ensureAudio().then(() => sfxChallenge());
+  }
+
+  function checkChallengeReady(){
+    const ok = (challenge.challenger !== null) && (challenge.challenged !== null) && (challenge.challenger !== challenge.challenged);
+    startVoteBtn.disabled = !ok;
+    if(ok) startVoteBtn.style.opacity = "1";
+  }
+
+  function startVoting(){
+    closeModal(challengeModal);
+
+    challenge.voterIndex = 0;
+    challenge.votesChallenger = 0;
+    challenge.votesChallenged = 0;
+    challenge.voted = new Array(players.length).fill(false);
+
+    showScreen('vote');
+    updateVoteUI();
+  }
+
+  function updateVoteUI(){
+    const A = players[challenge.challenger]?.name || "—";
+    const B = players[challenge.challenged]?.name || "—";
+    voteInfo.textContent = `Desafio: ${A} vs ${B}`;
+
+    let tries = 0;
+    while(challenge.voted[challenge.voterIndex] && tries < players.length){
+      challenge.voterIndex = (challenge.voterIndex + 1) % players.length;
+      tries++;
+    }
+
+    const currentVoterName = players[challenge.voterIndex]?.name || "—";
+    const done = challenge.voted.filter(Boolean).length;
+    voteProgress.textContent = `Votante: ${currentVoterName}  •  ${done+1}/${players.length}`;
+
+    nextVoterBtn.disabled = true;
+  }
+
+  function castVote(side){
+    if(challenge.voted[challenge.voterIndex]) return;
+
+    if(side === "challenger") challenge.votesChallenger += 1;
+    else challenge.votesChallenged += 1;
+
+    challenge.voted[challenge.voterIndex] = true;
+
+    ensureAudio().then(() => sfxTick());
+    nextVoterBtn.disabled = false;
+  }
+
+  function nextVoter(){
+    challenge.voterIndex = (challenge.voterIndex + 1) % players.length;
+
+    const done = challenge.voted.filter(Boolean).length;
+    if(done >= players.length){
+      computeVoteResult();
+      return;
+    }
+
+    updateVoteUI();
+  }
+
+  function computeVoteResult(){
+    const vc = challenge.votesChallenger;
+    const vd = challenge.votesChallenged;
+
+    const challenger = players[challenge.challenger];
+    const challenged = players[challenge.challenged];
+
+    let resultText = "";
+    let countsText = `Desafiante: ${vc} voto(s) • Desafiado: ${vd} voto(s)`;
+
+    if(vc === vd){
+      challenged.points += 1;
+      resultText = `Empate. ${challenged.name} vence (desafiado). (+1)`;
+    }else if(vd > vc){
+      challenged.points += 2;
+      challenger.points -= 1;
+      resultText = `${challenged.name} vence (desafiado). (+2)  •  ${challenger.name} (−1)`;
+    }else{
+      challenger.points += 1;
+      challenged.points -= 1;
+      resultText = `${challenger.name} vence (desafiante). (+1)  •  ${challenged.name} (−1)`;
+    }
+
+    renderScore();
+
+    voteResultLine.textContent = resultText;
+    voteCountsLine.textContent = countsText;
+
+    showScreen('voteResult');
+    ensureAudio().then(() => sfxChallenge());
+  }
+
+  /* =========================================================
+    5.10 CONTROLES / EVENTOS
+  ========================================================== */
+  function normalizeName(s){
+    return (s||"").trim().replace(/\s+/g," ").slice(0,18);
+  }
+
+  // Som toggle
+  soundBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    audioEnabled = !audioEnabled;
+    soundBtn.textContent = audioEnabled ? '🔊' : '🔇';
+  });
+
+  // Menu
+  menuBtn.addEventListener('click', async () => {
+    await ensureAudio();
+    sfxTick();
+    openModal(menuModal);
+  });
+  closeMenuBtn.addEventListener('click', async () => { await ensureAudio(); sfxTick(); closeModal(menuModal); });
+
+  openRulesBtn.addEventListener('click', async () => { await ensureAudio(); sfxTick(); closeModal(menuModal); openModal(rulesModal); });
+  closeRulesBtn.addEventListener('click', async () => { await ensureAudio(); sfxTick(); closeModal(rulesModal); });
+
+  openScoreBtn.addEventListener('click', async () => { await ensureAudio(); sfxTick(); closeModal(menuModal); renderScore(); openModal(scoreModal); });
+  closeScoreBtn.addEventListener('click', async () => { await ensureAudio(); sfxTick(); closeModal(scoreModal); });
+
+  resetBtn.addEventListener('click', async () => {
+    await ensureAudio(); sfxFail();
+    location.reload();
+  });
+
+  backHubBtn.addEventListener('click', async () => {
+    await ensureAudio(); sfxTick();
+    window.location.href = "index.html";
+  });
+
+  // Vinheta: start
+  let vinhetaStarted = false;
+  scrTeaser.addEventListener('click', () => {
+    if(vinhetaStarted) return;
+    vinhetaStarted = true;
+
+    hint.style.display = 'none';
+    contentTeaser.classList.add('active');
+    swirl.classList.add('run');
+
+    ensureAudio().then(ok => { if(ok) ecoSignature(); });
+
+    setTimeout(() => titleEco.classList.add('show'), 1100);
+    setTimeout(() => phraseEco.classList.add('show'), 1800);
+
+    setTimeout(() => {
+      showScreen('setup');
+    }, 7000);
+  });
+
+  // Setup: adicionar jogador
+  addPlayerBtn.addEventListener('click', async () => {
+    const nm = normalizeName(playerNameInput.value);
+    if(!nm) return;
+    if(players.length >= 12) return;
+
+    await ensureAudio();
+    sfxAdd();
+
+    const color = playerColors[players.length % playerColors.length];
+    players.push({ name: nm, points: 0, color });
+
+    playerNameInput.value = "";
+    renderSetup();
+  });
+
+  playerNameInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      addPlayerBtn.click();
+    }
+  });
+
+  // Start game
+  startGameBtn.addEventListener('click', async () => {
+    if(players.length < 3) return;
+    await ensureAudio();
+    sfxStart();
+
+    currentIndex = 0;
+    timePerTurn = clamp(timePerTurn, 3, 10);
+    applyPrepUI();
+    showScreen('prep');
+  });
+
+  // Prep: tempo +/-
+  timeDownBtn.addEventListener('click', async () => {
+    await ensureAudio();
+    sfxTick();
+    timePerTurn = clamp(timePerTurn - 1, 3, 10);
+    applyPrepUI();
+  });
+
+  timeUpBtn.addEventListener('click', async () => {
+    await ensureAudio();
+    sfxTick();
+    timePerTurn = clamp(timePerTurn + 1, 3, 10);
+    applyPrepUI();
+  });
+
+  allReadyBtn.addEventListener('click', async () => {
+    await ensureAudio();
+    sfxStart();
+    beginRevealThenArena();
+  });
+
+  // Arena: botões
+  failBtn.addEventListener('click', () => openFailPicker());
+  cancelFailBtn.addEventListener('click', async () => {
+    await ensureAudio(); sfxTick();
+    closeModal(failModal);
+    showScreen('arena');
+    inArena = true;
+  });
+  confirmFailBtn.addEventListener('click', () => confirmFail());
+
+  challengeBtn.addEventListener('click', () => openChallengePicker());
+  cancelChallengeBtn.addEventListener('click', async () => {
+    await ensureAudio(); sfxTick();
+    closeModal(challengeModal);
+    showScreen('arena');
+    inArena = true;
+  });
+  startVoteBtn.addEventListener('click', () => startVoting());
+
+  // Votação: votar
+  voteForChallengerBtn.addEventListener('click', () => castVote("challenger"));
+  voteForChallengedBtn.addEventListener('click', () => castVote("challenged"));
+  nextVoterBtn.addEventListener('click', () => nextVoter());
+
+  // Próximas rodadas (sempre volta para PREPARAÇÃO)
+  nextRoundFromVoteBtn.addEventListener('click', async () => {
+    await ensureAudio(); sfxStart();
+    goNextRoundPrep();
+  });
+
+  nextRoundFromFailBtn.addEventListener('click', async () => {
+    await ensureAudio(); sfxStart();
+    goNextRoundPrep();
+  });
+
+  // Fail modal: garantir enable/disable
+  const obsFail = new MutationObserver(() => {
+    confirmFailBtn.disabled = (failPick === null);
+  });
+  obsFail.observe(failPickGrid, { childList:true });
+
+  /* =========================================================
+    5.11 INIT
+  ========================================================== */
+  renderSetup();
+  renderScore();
+  applyPrepUI();
+</script>
+
+</body>
+</html>
